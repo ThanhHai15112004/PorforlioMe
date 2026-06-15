@@ -4,7 +4,7 @@ import Card from '../components/common/Card';
 
 export default function Projects() {
   return (
-    <div className="py-12 animate-fade-in">
+    <div className="max-w-6xl mx-auto px-6 py-12 animate-fade-in">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent mb-4">
           Dự án của tôi
