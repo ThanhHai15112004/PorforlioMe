@@ -1,38 +1,75 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
 :root {
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  /* Color Palette */
+  --bg-main: #050505;
+  --bg-soft: #0B0B0D;
+  --bg-card: #111113;
+  --bg-card-hover: #18181B;
+
+  --text-main: #F5F5F5;
+  --text-soft: #A1A1AA;
+  --text-muted: #71717A;
+
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.22);
+
+  --accent-main: #22C55E;
+  --accent-blue: #38BDF8;
+  --accent-red: #9F1239;
+  --accent-purple: #A855F7;
+
+  --glow-green: rgba(34, 197, 94, 0.35);
+  --glow-blue: rgba(56, 189, 248, 0.35);
+  --glow-red: rgba(159, 18, 57, 0.32);
+
+  /* Font Styling Mapping */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color-scheme: dark;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #0b1120;
-  color: #f1f5f9;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   min-height: 100vh;
+  /* Dark Editorial ambient glow background */
   background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-    radial-gradient(at 50% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.06) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.04) 0px, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(168, 85, 247, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.03) 0px, transparent 50%);
 }
 
-/* Custom styles for active route state */
-.nav-link-active {
-  color: #818cf8;
-  position: relative;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  color: var(--text-main);
 }
 
-.nav-link-active::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #818cf8;
-  border-radius: 9999px;
-  box-shadow: 0 0 8px #818cf8;
+/* Typography styles based on editorial guidelines */
+.hero-title {
+  font-size: clamp(64px, 11vw, 160px);
+  line-height: 0.86;
+  letter-spacing: -0.07em;
+  font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.section-title {
+  font-size: clamp(38px, 6vw, 88px);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.body-text {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+
+.code-text {
+  font-family: 'JetBrains Mono', monospace;
 }
