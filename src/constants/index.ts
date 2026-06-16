@@ -56,3 +56,6 @@ export const SOCIAL_LINKS: SocialLink[] = [
   { platform: 'LinkedIn', url: '#' },
   { platform: 'Twitter', url: '#' }
 ];
+
+export * from './theme';
+
