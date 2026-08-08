@@ -10,8 +10,9 @@
     "dev": "concurrently -k -p \"[{name}]\" -c \"cyan.bold,yellow.bold\" -n \"FE,BE\" \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
     "dev:fe": "npm run dev --workspace=frontend",
     "dev:be": "npm run dev --workspace=backend",
-    "build": "prisma db push --schema=backend/prisma/schema.prisma --accept-data-loss && npm run build --workspace=frontend",
-    "postinstall": "prisma generate --schema=backend/prisma/schema.prisma"
+    "build": "npm run build --workspace=frontend",
+    "postinstall": "prisma generate --schema=backend/prisma/schema.prisma",
+    "db:push": "prisma db push --schema=backend/prisma/schema.prisma && prisma db seed --schema=backend/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3"
