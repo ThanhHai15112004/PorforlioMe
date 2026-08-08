@@ -1,68 +1,78 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Đóng menu sau khi chuyển trang
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
   const navItems = [
     { path: '/', label: 'Home' },
     { path: '/projects', label: 'Work' },
     { path: '/about', label: 'About' },
-    { path: '/contact', label: 'Contact' }
+    { path: '/contact', label: 'Contact' },
   ];
 
   return (
     <>
-      <header 
-        className="fixed left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-6 md:px-8 border backdrop-blur-[18px] transition-all duration-300"
+      <header
+        className={`fixed left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-6 md:px-8 backdrop-blur-xl transition-all duration-500 border border-black/[0.07] dark:border-white/10 ${
+          scrolled
+            ? 'bg-white/85 dark:bg-black/70 shadow-[0_8px_40px_rgba(0,0,0,0.10)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
+            : 'bg-white/70 dark:bg-black/50 shadow-[0_2px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_20px_rgba(0,0,0,0.3)]'
+        }`}
         style={{
           width: 'min(1180px, calc(100% - 48px))',
-          height: '72px',
-          top: '24px',
+          height: '68px',
+          top: '20px',
           borderRadius: '999px',
-          background: 'rgba(5, 5, 5, 0.72)',
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 20px 80px rgba(0, 0, 0, 0.35)',
         }}
       >
-        {/* Left side: Logo [TH.] Thanh Hải */}
+        {/* Left: Logo TH. */}
         <NavLink to="/" className="flex items-center gap-3 group">
-          {/* TH. Circle Logo */}
-          <div className="relative w-9 h-9 rounded-full border border-white/10 bg-white/5 flex items-center justify-center transition-all duration-300 group-hover:border-white/25">
-            <span className="text-sm font-bold text-[#F5F5F5] font-sans tracking-tight select-none">
+          <div className="relative w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center shadow-sm transition-all duration-300 group-hover:shadow-blue-200 dark:group-hover:shadow-blue-900 group-hover:shadow-md">
+            <span className="text-sm font-bold text-white tracking-tight select-none">
               TH
             </span>
-            {/* Green available online dot */}
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#22C55E] rounded-full border-2 border-[#050505] shadow-[0_0_8px_#22C55E]"></span>
+            {/* Available online dot */}
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-white dark:border-black shadow-sm" />
           </div>
-          
-          {/* Name */}
-          <span className="text-sm font-semibold tracking-tight text-[#F5F5F5] font-sans">
+          <span className="text-sm font-semibold tracking-tight text-slate-800 dark:text-slate-100">
             Thanh Hải
           </span>
         </NavLink>
 
-        {/* Middle: Menu links (Hidden on mobile) */}
-        <nav className="hidden md:flex items-center gap-8 h-full">
+        {/* Middle: Nav links (Desktop) */}
+        <nav className="hidden md:flex items-center gap-7 h-full">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) => 
-                `relative text-[14px] font-medium transition-all duration-200 py-2 flex flex-col items-center justify-center ${
-                  isActive 
-                    ? 'text-[#F5F5F5]' 
-                    : 'text-[#A1A1AA] hover:text-[#F5F5F5]'
+              end={item.path === '/'}
+              className={({ isActive }) =>
+                `relative text-[14px] font-medium transition-all duration-200 py-2 flex flex-col items-center ${
+                  isActive
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
                   <span>{item.label}</span>
-                  {/* Green dot for active link */}
+                  {/* Active indicator dot */}
                   {isActive && (
-                    <span className="absolute -bottom-1.5 w-1.5 h-1.5 rounded-full bg-[#22C55E] shadow-[0_0_6px_#22C55E]"></span>
+                    <span className="absolute -bottom-1.5 w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400" />
                   )}
                 </>
               )}
@@ -70,53 +80,61 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Right side: CV Download Button (Hidden on mobile) & Hamburger Menu (Visible on mobile) */}
-        <div className="flex items-center gap-4">
-          <a 
-            href="#" 
-            className="group/cv hidden sm:inline-flex items-center justify-center gap-2 h-[42px] px-5 bg-[#F5F5F5] text-[#050505] text-[14px] font-semibold rounded-full select-none transition-all duration-300 hover:scale-[1.03] hover:bg-white active:scale-95 shadow-[0_0_15px_rgba(245,245,245,0.15)]"
+        {/* Right: Theme toggle + CV button + Hamburger */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
+          <a
+            href="#"
+            className="group/cv hidden sm:inline-flex items-center justify-center gap-2 h-[40px] px-5 bg-blue-600 text-white text-[13px] font-semibold rounded-full transition-all duration-300 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 dark:hover:shadow-blue-900/50 active:scale-95"
           >
             <span>Download CV</span>
-            <Icon 
-              icon="mdi:download" 
-              className="w-4 h-4 transition-transform duration-300 group-hover/cv:translate-y-0.5" 
+            <Icon
+              icon="mdi:download"
+              className="w-4 h-4 transition-transform duration-300 group-hover/cv:translate-y-0.5"
             />
           </a>
 
-          {/* Mobile hamburger menu button */}
-          <button 
+          {/* Mobile hamburger */}
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-[#A1A1AA] hover:text-[#F5F5F5] transition-colors p-1"
+            className="md:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors p-1"
             aria-label="Toggle Menu"
           >
-            <Icon icon={isMobileMenuOpen ? "mdi:close" : "mdi:menu"} className="w-6 h-6" />
+            <Icon
+              icon={isMobileMenuOpen ? 'mdi:close' : 'mdi:menu'}
+              className="w-6 h-6"
+            />
           </button>
         </div>
       </header>
 
-      {/* Mobile Drawer Overlay */}
+      {/* Mobile Full-screen Menu */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#050505]/95 backdrop-blur-md md:hidden flex flex-col items-center justify-center animate-fade-in">
-          <nav className="flex flex-col items-center gap-8 text-lg">
+        <div className="fixed inset-0 z-40 bg-white/97 dark:bg-black/95 backdrop-blur-md md:hidden flex flex-col items-center justify-center">
+          <nav className="flex flex-col items-center gap-8">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={({ isActive }) => 
-                  `relative py-2 font-medium tracking-wide text-2xl transition-colors ${
-                    isActive ? 'text-[#22C55E]' : 'text-[#A1A1AA] hover:text-[#F5F5F5]'
+                end={item.path === '/'}
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `text-2xl font-semibold tracking-tight transition-colors ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white'
                   }`
                 }
               >
                 {item.label}
               </NavLink>
             ))}
-            
-            <a 
-              href="#" 
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="mt-6 inline-flex items-center justify-center gap-2 h-[48px] px-8 bg-[#F5F5F5] text-[#050505] text-base font-bold rounded-full transition-all hover:scale-105 active:scale-95"
+
+            <a
+              href="#"
+              onClick={closeMenu}
+              className="mt-4 inline-flex items-center justify-center gap-2 h-[48px] px-8 bg-blue-600 text-white text-base font-bold rounded-full transition-all hover:bg-blue-700 active:scale-95"
             >
               <span>Download CV</span>
               <Icon icon="mdi:download" className="w-5 h-5" />

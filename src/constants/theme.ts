@@ -7,45 +7,43 @@
 export const COLORS = {
   // Background colors
   bg: {
-    main: '#050505',
-    soft: '#0B0B0D',
-    card: '#111113',
-    cardHover: '#18181B',
+    main: '#FFFFFF',
+    soft: '#FAFAFA',
+    card: '#FFFFFF',
+    cardHover: '#F8FAFC',
   },
 
   // Typography colors
   text: {
-    main: '#F5F5F5',
-    soft: '#A1A1AA',
-    muted: '#71717A',
+    main: '#0F172A', // Slate 900
+    soft: '#475569', // Slate 600
+    muted: '#94A3B8', // Slate 400
   },
 
   // Borders
   border: {
-    soft: 'rgba(255, 255, 255, 0.1)',
-    strong: 'rgba(255, 255, 255, 0.22)',
+    soft: 'rgba(0, 0, 0, 0.06)',
+    strong: 'rgba(0, 0, 0, 0.12)',
   },
 
-  // Accent colors
-  accent: {
-    main: '#22C55E',
-    blue: '#38BDF8',
-    red: '#9F1239',
-    purple: '#A855F7',
+  // Accent colors (Blue Primary)
+  primary: {
+    main: '#2563EB', // Blue 600
+    hover: '#1D4ED8', // Blue 700
+    light: '#EFF6FF', // Blue 50
   },
 
   // Glow / Box Shadow colors
   glow: {
-    green: 'rgba(34, 197, 94, 0.35)',
-    blue: 'rgba(56, 189, 248, 0.35)',
-    red: 'rgba(159, 18, 57, 0.32)',
+    blue: 'rgba(37, 99, 235, 0.15)',
+    soft: 'rgba(0, 0, 0, 0.04)',
   },
 } as const;
 
 export const FONTS = {
-  heading: "'Space Grotesk', 'Sora', sans-serif",
-  body: "'Inter', 'Plus Jakarta Sans', sans-serif",
-  code: "'JetBrains Mono', monospace",
+  heading: "'Inter', system-ui, sans-serif",
+  body: "'Inter', system-ui, sans-serif",
+  code: "'Inter', system-ui, sans-serif",
 } as const;
 
 export const TYPOGRAPHY = {
