@@ -57,29 +57,21 @@ export default function Header() {
         </NavLink>
 
         {/* Middle: Nav links (Desktop) */}
-        <nav className="hidden md:flex items-center gap-7 h-full">
+        <nav className="hidden md:flex items-center gap-1.5 h-full">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.path === '/'}
               className={({ isActive }) =>
-                `relative text-[14px] font-medium transition-all duration-200 py-2 flex flex-col items-center ${
+                `px-4 py-2 rounded-full text-[14px] font-medium transition-all duration-200 ${
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 font-semibold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-white/5'
                 }`
               }
             >
-              {({ isActive }) => (
-                <>
-                  <span>{item.label}</span>
-                  {/* Active indicator dot */}
-                  {isActive && (
-                    <span className="absolute -bottom-1.5 w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400" />
-                  )}
-                </>
-              )}
+              {item.label}
             </NavLink>
           ))}
         </nav>
@@ -117,7 +109,7 @@ export default function Header() {
       {/* Mobile Full-screen Menu */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-white/97 dark:bg-black/95 backdrop-blur-md md:hidden flex flex-col items-center justify-center">
-          <nav className="flex flex-col items-center gap-8">
+          <nav className="flex flex-col items-center gap-4 w-full px-8">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -125,10 +117,10 @@ export default function Header() {
                 end={item.path === '/'}
                 onClick={closeMenu}
                 className={({ isActive }) =>
-                  `text-lg font-semibold tracking-tight transition-colors ${
+                  `w-full max-w-xs text-center text-lg tracking-tight transition-all py-3 px-6 rounded-full ${
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white'
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 font-bold'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 font-medium'
                   }`
                 }
               >

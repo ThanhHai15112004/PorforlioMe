@@ -9,7 +9,7 @@ export default function Eyebrow({ children, as = 'h3', className = '' }: Eyebrow
   const Tag = as;
   return (
     <Tag
-      className={`text-blue-600 dark:text-blue-500 font-medium text-sm tracking-wider uppercase ${className}`}
+      className={`text-blue-600 dark:text-blue-400 font-bold text-xs sm:text-sm tracking-[0.16em] uppercase ${className}`}
     >
       {children}
     </Tag>

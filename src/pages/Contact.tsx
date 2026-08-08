@@ -30,10 +30,7 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
       className="mb-10"
     >
       <Eyebrow as="p" className="mb-3">{label}</Eyebrow>
-      <h2
-        className="font-extrabold text-slate-900 dark:text-white leading-tight"
-        style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontFamily: "'Inter', sans-serif" }}
-      >
+      <h2 className="section-title text-slate-900 dark:text-white">
         {title}
       </h2>
     </motion.div>
@@ -61,7 +58,23 @@ export default function Contact() {
     <div className="w-full overflow-hidden">
 
       {/* ── 1. HERO ──────────────────────────────────────────────────── */}
-      <section className="pt-28 pb-20 px-6 md:px-12 bg-white dark:bg-[#07080D]">
+      <section className="relative pt-32 pb-20 px-6 md:px-12 bg-white dark:bg-[#07080D]">
+        
+        {/* Floating contact icons background — matching Home, Projects & About */}
+        {[
+          { icon: 'mdi:message-processing-outline', className: 'top-[14%] left-[2%]', anim: 'animate-float-slow' },
+          { icon: 'simple-icons:zalo', className: 'top-[10%] right-[4%]', anim: 'animate-float-fast' },
+          { icon: 'mdi:facebook-messenger', className: 'bottom-[18%] left-[5%]', anim: 'animate-float-medium' },
+          { icon: 'mdi:email-outline', className: 'bottom-[14%] right-[2%]', anim: 'animate-float-slow' },
+        ].map((item, i) => (
+          <div
+            key={i}
+            className={`hidden md:flex absolute w-10 h-10 lg:w-12 lg:h-12 rounded-2xl glass-card elevate-sm items-center justify-center text-blue-600 dark:text-blue-400 text-xl lg:text-2xl pointer-events-none z-0 ${item.className} ${item.anim}`}
+          >
+            <Icon icon={item.icon} />
+          </div>
+        ))}
+
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
@@ -144,17 +157,26 @@ export default function Contact() {
       {/* ── 2. CONTACT INFO + FORM ────────────────────────────────────── */}
       <section className="py-20 px-6 md:px-12 bg-slate-50 dark:bg-white/[0.03]">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16">
+          
+          {/* Eyebrow Section Title above Grid */}
+          <motion.div
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={fadeUp}
+            className="mb-8"
+          >
+            <Eyebrow as="p">{t.infoEyebrow}</Eyebrow>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-stretch">
 
             {/* Left: Info panel (2/5) */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
+            <div className="lg:col-span-2 flex flex-col justify-between gap-4">
               <motion.div
                 initial="hidden" whileInView="visible" viewport={revealViewport}
                 variants={fadeUp}
-                className="flex flex-col gap-4"
+                className="flex flex-col gap-4 h-full justify-between"
               >
-                <Eyebrow as="p">{t.infoEyebrow}</Eyebrow>
-
                 {/* Availability card */}
                 <Card padding="sm">
                   <div className="flex items-center gap-2 mb-3">
@@ -184,7 +206,7 @@ export default function Contact() {
                     <CopyButton text={CONTACT_EMAIL} label={t.copyEmail} copiedLabel={t.copied} />
                     <a
                       href={`mailto:${CONTACT_EMAIL}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                     >
                       <Icon icon="mdi:send-outline" className="w-3.5 h-3.5" />
                       {t.sendEmail}
@@ -204,7 +226,7 @@ export default function Contact() {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group cursor-pointer"
                       >
                         <Icon icon={link.icon} className="w-5 h-5 text-slate-700 dark:text-slate-300" />
                         <div className="flex-1">
@@ -219,12 +241,12 @@ export default function Contact() {
               </motion.div>
             </div>
 
-            {/* Right: Form (3/5) */}
+            {/* Right: Form + Direct Chat Bar (3/5) */}
             <motion.div
               ref={formRef}
               initial="hidden" whileInView="visible" viewport={revealViewport}
               variants={fadeUp} custom={0.1}
-              className="lg:col-span-3"
+              className="lg:col-span-3 flex flex-col gap-4"
             >
               <Card padding="lg">
                 <h2
@@ -237,6 +259,46 @@ export default function Contact() {
                   prefillMessage={prefillMsg}
                   onPrefillUsed={() => setPrefillMsg('')}
                 />
+              </Card>
+
+              {/* Direct Quick Chat & Instant Response Guarantee Bar */}
+              <Card padding="md" className="border-blue-500/20 bg-blue-50/40 dark:bg-blue-950/20">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600/10 dark:bg-blue-400/20 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xl shrink-0">
+                      <Icon icon="mdi:lightning-bolt" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">
+                        {pick(lang, 'Cần phản hồi & trao đổi gấp?', 'Need urgent discussion?')}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {pick(lang, 'Nhắn tin trực tiếp qua Zalo hoặc Messenger để phản hồi nhanh nhất.', 'Direct message via Zalo or Messenger for instant response.')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <a
+                      href="https://zalo.me/0376149975"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                    >
+                      <Icon icon="simple-icons:zalo" className="text-sm" />
+                      <span>Zalo Chat</span>
+                    </a>
+                    <a
+                      href="https://www.facebook.com/hai.15112004/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 text-white text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      <Icon icon="mdi:facebook-messenger" className="text-sm text-blue-400" />
+                      <span>Messenger</span>
+                    </a>
+                  </div>
+                </div>
               </Card>
             </motion.div>
           </div>

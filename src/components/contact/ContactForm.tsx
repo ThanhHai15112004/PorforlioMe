@@ -132,7 +132,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
         <div className="flex gap-3">
           <button
             onClick={handleReset}
-            className="px-5 py-2.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+            className="px-5 py-2.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
             {t.sendAnother}
           </button>
@@ -212,7 +212,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
           ) : (
             <span />
           )}
-          <span className={`text-xs ${data.message.length > 1500 ? 'text-red-400' : 'text-slate-400 dark:text-slate-500'}`}>
+          <span className={`text-xs font-mono ${data.message.length > 1500 ? 'text-red-400' : 'text-slate-400 dark:text-slate-500'}`}>
             {data.message.length}/1500
           </span>
         </div>
@@ -239,7 +239,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
         disabled={formState === 'submitting'}
         className={`
           w-full flex items-center justify-center gap-2 py-3.5
-          font-bold text-sm rounded-full
+          font-bold text-sm rounded-full cursor-pointer
           transition-all duration-300 active:scale-[0.98]
           ${formState === 'submitting'
             ? 'bg-slate-300 dark:bg-white/10 text-slate-500 dark:text-slate-500 cursor-not-allowed'
@@ -260,7 +260,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
         )}
       </button>
 
-      <p className="text-center text-xs text-slate-400 dark:text-slate-500">
+      <p className="text-center text-xs text-slate-400 dark:text-slate-500 font-medium">
         {t.responseTime}
       </p>
     </form>

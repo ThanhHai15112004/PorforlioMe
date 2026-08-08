@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import FloatingImage from '../components/about/FloatingImage';
 import ProcessTimeline from '../components/about/ProcessTimeline';
-import { easeOut, fadeUp, revealViewport } from '../lib/motion';
+import AboutStoryTree from '../components/about/AboutStoryTree';
+import AboutHeroSlider from '../components/about/AboutHeroSlider';
+import { fadeUp, revealViewport } from '../lib/motion';
 import { useLang, pick } from '../lib/i18n';
 import Eyebrow from '../components/common/Eyebrow';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
-import RoleSlider from '../components/common/RoleSlider';
 import {
   QUICK_INFO,
   EXPERTISE,
@@ -15,7 +15,6 @@ import {
   JOURNEY,
   TECH_GROUPS,
   KEY_EXPERIENCE,
-  ABOUT_ROLE_SLIDES,
   ABOUT_TEXT,
 } from '../constants/about';
 
@@ -29,10 +28,7 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
       className="mb-12"
     >
       <Eyebrow as="p" className="mb-3">{label}</Eyebrow>
-      <h2
-        className="font-extrabold text-slate-900 dark:text-white leading-tight"
-        style={{ fontSize: 'clamp(20px, 2.2vw, 28px)', fontFamily: "'Inter', sans-serif" }}
-      >
+      <h2 className="section-title text-slate-900 dark:text-white">
         {title}
       </h2>
     </motion.div>
@@ -43,70 +39,30 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
 export default function About() {
   const { lang } = useLang();
   const t = ABOUT_TEXT[lang];
-  const roleSlides = ABOUT_ROLE_SLIDES.map((s) => ({
-    title: s.title,
-    subtitle: pick(lang, s.subtitle.vi, s.subtitle.en),
-  }));
 
   return (
     <div className="w-full overflow-hidden">
 
       {/* ── 1. HERO ─────────────────────────────────────────────────── */}
-      <section className="pt-28 pb-20 px-6 md:px-12 bg-white dark:bg-[#07080D]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-            {/* Left: Content */}
-            <div className="flex flex-col gap-7 order-2 lg:order-1">
-              <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={0.05}
-                className="text-blue-600 dark:text-blue-500 font-medium text-sm tracking-wider uppercase">
-                {t.heroEyebrow}
-              </motion.p>
-
-              <motion.h1 variants={fadeUp} initial="hidden" animate="visible" custom={0.12}
-                className="font-extrabold text-slate-900 dark:text-white leading-tight"
-                style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontFamily: "'Inter', sans-serif" }}>
-                {t.heroTitlePrefix}{' '}
-                <span className="text-blue-600 dark:text-blue-400">{t.heroTitleHighlight}</span>{' '}
-                {t.heroTitleSuffix}
-              </motion.h1>
-
-              <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={0.2}
-                className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed max-w-lg">
-                {t.heroSubtitle}
-              </motion.p>
-
-              {/* Role slider — đồng bộ hiệu ứng với Home */}
-              <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.28}>
-                <RoleSlider
-                  slides={roleSlides}
-                  titleClassName="inline-block px-3 py-1.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-sm font-mono font-semibold rounded-full"
-                  subtitleClassName="text-slate-500 dark:text-slate-400 text-sm mt-3"
-                />
-              </motion.div>
-
-              {/* CTAs */}
-              <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.36}
-                className="flex flex-wrap gap-3">
-                <Button to="/projects" variant="primary" size="sm">
-                  {t.ctaProjects}
-                  <Icon icon="mdi:arrow-right" className="w-4 h-4" />
-                </Button>
-                <Button href="#" variant="secondary" size="sm">
-                  <Icon icon="mdi:download-outline" className="w-4 h-4" />
-                  {t.ctaCv}
-                </Button>
-              </motion.div>
-            </div>
-
-            {/* Right: Floating Image */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: easeOut }}
-              className="order-1 lg:order-2">
-              <FloatingImage className="min-h-[360px]" />
-            </motion.div>
+      <section className="relative pt-32 pb-20 px-6 md:px-12 bg-white dark:bg-[#07080D]">
+        
+        {/* Floating tech icons background — matching Home & Projects */}
+        {[
+          { icon: 'mdi:laravel', className: 'top-[12%] left-[2%]', anim: 'animate-float-slow' },
+          { icon: 'mdi:react', className: 'top-[10%] right-[3%]', anim: 'animate-float-fast' },
+          { icon: 'ph:figma-logo', className: 'bottom-[16%] left-[4%]', anim: 'animate-float-medium' },
+          { icon: 'mdi:language-typescript', className: 'bottom-[12%] right-[2%]', anim: 'animate-float-slow' },
+        ].map((item, i) => (
+          <div
+            key={i}
+            className={`hidden md:flex absolute w-10 h-10 lg:w-12 lg:h-12 rounded-2xl glass-card elevate-sm items-center justify-center text-blue-600 dark:text-blue-400 text-xl lg:text-2xl pointer-events-none z-0 ${item.className} ${item.anim}`}
+          >
+            <Icon icon={item.icon} />
           </div>
+        ))}
+
+        <div className="max-w-7xl mx-auto">
+          <AboutHeroSlider />
         </div>
       </section>
 
@@ -131,6 +87,26 @@ export default function About() {
               </motion.p>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── 2.5 GALLERY & STORY SLIDER ──────────────────────────────── */}
+      <section className="py-20 px-6 md:px-12 bg-white dark:bg-[#07080D]">
+        <div className="max-w-7xl mx-auto">
+          <SectionHeader label={t.galleryEyebrow} title={t.galleryTitle} />
+          <motion.p
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
+            variants={fadeUp}
+            className="text-slate-600 dark:text-slate-400 text-lg -mt-8 mb-10 max-w-2xl"
+          >
+            {t.gallerySubtitle}
+          </motion.p>
+          <motion.div
+            initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
+            variants={fadeUp}
+          >
+            <AboutStoryTree />
+          </motion.div>
         </div>
       </section>
 

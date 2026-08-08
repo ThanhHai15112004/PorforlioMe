@@ -8,6 +8,7 @@ import Button from '../components/common/Button';
 import TiltCard from '../components/common/TiltCard';
 import MockupFrame from '../components/projects/MockupFrame';
 import RoleSlider from '../components/common/RoleSlider';
+import CodeIdeWindow from '../components/common/CodeIdeWindow';
 import { PROJECTS_DATA, localizeProject, TAG_LABEL } from '../constants/projects';
 import { useLang } from '../lib/i18n';
 import {
@@ -139,9 +140,22 @@ export default function Home() {
 
   return (
     <div className="w-full relative">
-      {/* 1. OPENING / MANIFESTO */}
-      <section ref={heroRef} className="relative w-full min-h-[90vh] md:min-h-screen flex items-center px-6 md:px-12 lg:px-24 overflow-hidden">
-        {/* Foreground floating icon badges — visible at every screen size, scaled down on mobile */}
+      {/* 1. OPENING / MANIFESTO (VS Code Inspired Layout) */}
+      <section ref={heroRef} className="relative w-full min-h-screen flex flex-col items-center pt-32 sm:pt-36 md:pt-40 pb-20 px-6 md:px-12 lg:px-24 overflow-hidden">
+        
+        {/* Subtle Binary / Code Matrix Background Pattern (VS Code inspired) */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.06] font-mono text-[11px] leading-4 text-blue-900 dark:text-blue-200 select-none overflow-hidden [mask-image:_radial-gradient(ellipse_at_center,black_30%,transparent_80%)]">
+          <div className="whitespace-pre tracking-widest break-all">
+            {`01011101011000111010001111001100011001001110011011000111011010100111011010
+11101001100100110111001011000101101101010011011001011000111010011001001101
+00101101110100110110100111011001011011101001101101001110110010110111010011
+01101101001110110010110111010011011010011101100101101110100110110100111011
+11101100101101110100110110100111011001011011101001101101001110110010110111
+01011101011000111010001111001100011001001110011011000111011010100111011010`.repeat(15)}
+          </div>
+        </div>
+
+        {/* Foreground floating icon badges */}
         {heroFloatingIcons.map((item, i) => (
           <div
             key={i}
@@ -151,33 +165,13 @@ export default function Home() {
           </div>
         ))}
 
-        {/* Mini mock browser window — decorative, no real screenshot needed yet */}
-        <div className="hidden sm:block absolute bottom-6 sm:bottom-10 right-[3%] perspective-1000 pointer-events-none z-0">
-          <div
-            className="w-40 sm:w-56 preserve-3d glass-card elevate-md rounded-xl p-3 sm:p-4 animate-float-medium"
-            style={{ transform: 'rotateY(-10deg) rotateX(6deg)' }}
-          >
-            <div className="flex gap-1.5 mb-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
-            </div>
-            <div className="space-y-2">
-              <div className="h-2 rounded bg-blue-500/30 w-3/4" />
-              <div className="h-2 rounded bg-slate-900/10 dark:bg-white/10 w-full" />
-              <div className="h-2 rounded bg-slate-900/10 dark:bg-white/10 w-5/6" />
-              <div className="h-2 rounded bg-blue-500/20 w-2/3" />
-            </div>
-          </div>
-        </div>
-
         <motion.div
           style={{ opacity: heroOpacity, y: heroY, scale: heroScale }}
           className="relative z-10 w-full max-w-5xl mx-auto text-center flex flex-col items-center"
         >
           <motion.p
             initial="hidden" animate="visible" custom={0.1} variants={fadeUp}
-            className="text-blue-600 dark:text-blue-500 font-medium text-sm md:text-base mb-6 tracking-wider uppercase"
+            className="text-blue-600 dark:text-blue-500 font-medium text-sm md:text-base mb-3 tracking-wider uppercase"
           >
             {HOME_UI.heroEyebrow[lang]}
           </motion.p>
@@ -192,15 +186,15 @@ export default function Home() {
           <motion.div initial="hidden" animate="visible" custom={0.35} variants={fadeUp} className="w-full flex flex-col items-center">
             <RoleSlider
               slides={roleSlides}
-              className="mb-6"
+              className="mb-4"
               titleClassName="text-lg md:text-xl lg:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700 dark:from-blue-400 dark:to-blue-600 tracking-tight uppercase"
-              subtitleClassName="text-slate-600 dark:text-slate-400 text-base md:text-lg max-w-xl mt-4 mb-12 leading-relaxed mx-auto"
+              subtitleClassName="text-slate-600 dark:text-slate-400 text-base md:text-lg max-w-xl mt-3 mb-6 leading-relaxed mx-auto"
             />
           </motion.div>
 
           <motion.div
             initial="hidden" animate="visible" custom={0.65} variants={fadeUp}
-            className="flex flex-col sm:flex-row w-full sm:w-auto justify-center gap-4"
+            className="flex flex-col sm:flex-row w-full sm:w-auto justify-center gap-4 mb-10 md:mb-14"
           >
             <Button to="/projects" variant="primary" className="w-full sm:w-auto">
               {HOME_UI.heroCtaProjects[lang]}
@@ -209,6 +203,14 @@ export default function Home() {
             <Button to="/contact" variant="secondary" className="w-full sm:w-auto">
               {HOME_UI.heroCtaContact[lang]}
             </Button>
+          </motion.div>
+
+          {/* Code IDE Window */}
+          <motion.div
+            initial="hidden" animate="visible" custom={0.85} variants={fadeUp}
+            className="w-full max-w-4xl mx-auto"
+          >
+            <CodeIdeWindow />
           </motion.div>
         </motion.div>
       </section>

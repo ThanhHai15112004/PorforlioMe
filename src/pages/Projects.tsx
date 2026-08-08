@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import { PROJECTS_DATA, PROJECT_TAGS, TAG_ACCENT, TAG_LABEL, PROJECTS_ROLE_SLIDES, localizeProject } from '../constants/projects';
+import { PROJECTS_DATA, PROJECT_TAGS, TAG_ACCENT, TAG_LABEL, PROJECTS_ROLE_SLIDES, PROJECTS_FLOATING_ICONS, localizeProject } from '../constants/projects';
 import type { ProjectTag } from '../constants/projects';
 import MockupFrame from '../components/projects/MockupFrame';
 import FilterTabs from '../components/projects/FilterTabs';
@@ -11,6 +11,7 @@ import Eyebrow from '../components/common/Eyebrow';
 import Button from '../components/common/Button';
 import TiltCard from '../components/common/TiltCard';
 import RoleSlider from '../components/common/RoleSlider';
+import SpotlightProjectCard from '../components/projects/SpotlightProjectCard';
 import { useLang, pick } from '../lib/i18n';
 
 export default function Projects() {
@@ -26,58 +27,81 @@ export default function Projects() {
     <div className="w-full overflow-hidden">
 
       {/* ─── HERO ─────────────────────────────────────────────────────── */}
-      <section className="pt-32 pb-16 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="flex flex-col gap-8 max-w-3xl">
-          {/* Label */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.05}>
-            <Eyebrow as="p">{pick(lang, 'Dự án', 'Projects')}</Eyebrow>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            variants={fadeUp} initial="hidden" animate="visible" custom={0.15}
-            className="font-extrabold text-slate-900 dark:text-white leading-tight"
-            style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontFamily: "'Inter', sans-serif" }}
+      <section className="relative pt-32 pb-12 px-6 md:px-12 max-w-7xl mx-auto">
+        
+        {/* Floating tech icons floating in background — matching Home page style */}
+        {PROJECTS_FLOATING_ICONS.map((item, i) => (
+          <div
+            key={i}
+            className={`hidden md:flex absolute w-10 h-10 lg:w-12 lg:h-12 rounded-2xl glass-card elevate-sm items-center justify-center text-blue-600 dark:text-blue-400 text-xl lg:text-2xl pointer-events-none z-0 ${item.className} ${item.anim}`}
           >
-            {pick(lang, 'Những dự án tôi đã xây dựng', 'Projects I have built')}
-          </motion.h1>
+            <Icon icon={item.icon} />
+          </div>
+        ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          
+          {/* Left Column: Text & Filters */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            {/* Label */}
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.05}>
+              <Eyebrow as="p">{pick(lang, 'Dự án', 'Projects')}</Eyebrow>
+            </motion.div>
 
-          {/* Description */}
-          <motion.p
-            variants={fadeUp} initial="hidden" animate="visible" custom={0.25}
-            className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed"
-          >
-            {pick(
-              lang,
-              'Một số hệ thống, sản phẩm và giải pháp tôi đã tham gia phân tích, thiết kế và phát triển trong quá trình làm việc.',
-              'A selection of systems, products, and solutions I have analyzed, designed, and developed throughout my work.',
-            )}
-          </motion.p>
+            {/* Headline */}
+            <motion.h1
+              variants={fadeUp} initial="hidden" animate="visible" custom={0.15}
+              className="font-extrabold text-slate-900 dark:text-white leading-tight"
+              style={{ fontSize: 'clamp(26px, 3.2vw, 38px)', fontFamily: "'Inter', sans-serif" }}
+            >
+              {pick(lang, 'Những dự án tôi đã xây dựng', 'Projects I have built')}
+            </motion.h1>
 
-          {/* Role slider — đồng bộ hiệu ứng với các trang khác */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.3}>
-            <RoleSlider
-              slides={PROJECTS_ROLE_SLIDES[lang]}
-              titleClassName="text-blue-600 dark:text-blue-400 font-bold text-base"
-              subtitleClassName="text-slate-500 dark:text-slate-400 text-sm mt-1"
-            />
-          </motion.div>
+            {/* Description */}
+            <motion.p
+              variants={fadeUp} initial="hidden" animate="visible" custom={0.25}
+              className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed max-w-2xl"
+            >
+              {pick(
+                lang,
+                'Một số hệ thống, sản phẩm và giải pháp tôi đã tham gia phân tích, thiết kế và phát triển trong quá trình làm việc.',
+                'A selection of systems, products, and solutions I have analyzed, designed, and developed throughout my work.',
+              )}
+            </motion.p>
 
-          {/* Filter */}
+            {/* Role slider — đồng bộ hiệu ứng với các trang khác */}
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0.3}>
+              <RoleSlider
+                slides={PROJECTS_ROLE_SLIDES[lang]}
+                titleClassName="text-blue-600 dark:text-blue-400 font-bold text-base"
+                subtitleClassName="text-slate-500 dark:text-slate-400 text-sm mt-1"
+              />
+            </motion.div>
+
+            {/* Filter */}
+            <motion.div
+              variants={fadeUp} initial="hidden" animate="visible" custom={0.4}
+              className="pt-2"
+            >
+              <FilterTabs
+                tags={PROJECT_TAGS}
+                active={activeTag}
+                onChange={setActiveTag}
+              />
+            </motion.div>
+          </div>
+
+          {/* Right Column: Interactive Spotlight Card */}
           <motion.div
-            variants={fadeUp} initial="hidden" animate="visible" custom={0.4}
+            variants={fadeUp} initial="hidden" animate="visible" custom={0.5}
+            className="lg:col-span-5 w-full pt-4 lg:pt-0"
           >
-            <FilterTabs
-              tags={PROJECT_TAGS}
-              active={activeTag}
-              onChange={setActiveTag}
-            />
+            <SpotlightProjectCard />
           </motion.div>
         </div>
 
         {/* Scroll indicator */}
         <motion.div
-          className="flex items-center gap-2 text-slate-400 dark:text-slate-500 mt-16"
+          className="flex items-center gap-2 text-slate-400 dark:text-slate-500 mt-12"
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5 }}
         >

@@ -1081,3 +1081,12 @@ export const PROJECTS_ROLE_SLIDES: Bi<{ title: string; subtitle: string }[]> = {
     { title: 'Architecture & Operations', subtitle: 'Designing scalable systems that are easy to maintain.' },
   ],
 };
+
+/** Floating tech icons background for Projects Hero section */
+export const PROJECTS_FLOATING_ICONS = [
+  { icon: 'mdi:laravel', className: 'top-[14%] left-[1%]', anim: 'animate-float-slow' },
+  { icon: 'mdi:react', className: 'top-[10%] right-[3%]', anim: 'animate-float-fast' },
+  { icon: 'mdi:docker', className: 'bottom-[18%] left-[4%]', anim: 'animate-float-medium' },
+  { icon: 'simple-icons:redis', className: 'bottom-[12%] right-[1%]', anim: 'animate-float-slow' },
+  { icon: 'mdi:language-typescript', className: 'top-[58%] left-[44%]', anim: 'animate-float-fast' },
+];

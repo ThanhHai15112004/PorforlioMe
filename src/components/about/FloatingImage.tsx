@@ -11,11 +11,25 @@ const BADGES = [
   { label: { vi: 'Full-stack Dev', en: 'Full-stack Dev' }, icon: 'mdi:lightning-bolt', position: '-top-3 left-10' },
 ];
 
-interface FloatingImageProps {
-  className?: string;
+interface BadgeItem {
+  label: { vi: string; en: string };
+  icon: string;
+  position: string;
 }
 
-export default function FloatingImage({ className = '' }: FloatingImageProps) {
+interface FloatingImageProps {
+  className?: string;
+  image?: string;
+  caption?: string;
+  badges?: BadgeItem[];
+}
+
+export default function FloatingImage({
+  className = '',
+  image = meAvatar,
+  caption = 'Thanh Hải · Full-stack Developer',
+  badges = BADGES,
+}: FloatingImageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { lang } = useLang();
 
@@ -68,29 +82,32 @@ export default function FloatingImage({ className = '' }: FloatingImageProps) {
             }}
           />
 
-          <img
-            src={meAvatar}
-            alt="Thanh Hải"
+          <motion.img
+            key={image}
+            src={image}
+            alt={caption}
             decoding="async"
             fetchPriority="high"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
             className="absolute inset-0 w-full h-full object-cover object-top"
           />
 
-          {/* Name caption */}
-          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 py-5 bg-gradient-to-t from-black/50 to-transparent">
-            <p className="font-bold text-white text-sm font-mono">Thanh Hải</p>
-            <p className="text-white/70 text-xs font-mono">{pick(lang, 'Full-stack Developer', 'Full-stack Developer')}</p>
+          {/* Caption */}
+          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 py-5 bg-gradient-to-t from-black/70 via-black/40 to-transparent">
+            <p className="font-bold text-white text-sm font-mono tracking-tight">{caption}</p>
           </div>
         </div>
 
         {/* Floating badges */}
-        {BADGES.map((badge, i) => (
+        {badges.map((badge, i) => (
           <motion.div
-            key={badge.label.en}
+            key={badge.label.en + badge.position}
             className={`absolute ${badge.position} z-10`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 + i * 0.15, duration: 0.4, ease: 'easeOut' }}
+            transition={{ delay: 0.2 + i * 0.1, duration: 0.4, ease: 'easeOut' }}
           >
             <motion.div
               animate={{ y: [0, -4, 0] }}
