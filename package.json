@@ -1,40 +1,17 @@
 {
-  "name": "web-porforlio",
+  "name": "web-portfolio-root",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@iconify/react": "^6.0.2",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
-    "@tailwindcss/vite": "^4.3.1",
-    "framer-motion": "^12.40.0",
-    "lenis": "^1.3.25",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-router-dom": "^7.17.0",
-    "tailwindcss": "^4.3.1",
-    "three": "^0.184.0"
+    "dev": "concurrently -k -p \"[{name}]\" -c \"cyan.bold,yellow.bold\" -n \"FE,BE\" \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
+    "dev:fe": "npm run dev --workspace=frontend",
+    "dev:be": "npm run dev --workspace=backend"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.184.1",
-    "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^10.3.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.6.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "concurrently": "^9.1.2"
   }
 }
