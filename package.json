@@ -11,9 +11,13 @@
     "dev:fe": "npm run dev --workspace=frontend",
     "dev:be": "npm run dev --workspace=backend",
     "build": "npm run build --workspace=frontend",
-    "postinstall": "npm run postinstall --workspace=backend"
+    "postinstall": "prisma generate --schema=backend/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "prisma": "^6.19.3"
   }
 }
