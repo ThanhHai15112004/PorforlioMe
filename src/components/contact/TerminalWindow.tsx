@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const LINES = [
   { text: '> initializing connection...', delay: 0 },
   { text: '> status: available for new projects', delay: 700 },
-  { text: '> location: Vietnam 🇻🇳', delay: 1400 },
+  { text: '> location: Vietnam', delay: 1400 },
   { text: '> tech_stack: Laravel · React · Docker', delay: 2100 },
   { text: '> response_time: within 24–48 hours', delay: 2800 },
   { text: '> ready_for: collaboration, hire, consult', delay: 3500 },

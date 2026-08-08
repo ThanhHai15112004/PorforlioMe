@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import ThemeToggle from './ThemeToggle';
+import LangToggle from './LangToggle';
+import { useLang, pick } from '../../lib/i18n';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { lang } = useLang();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -17,11 +20,12 @@ export default function Header() {
   const closeMenu = () => setIsMobileMenuOpen(false);
 
   const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/projects', label: 'Work' },
-    { path: '/about', label: 'About' },
-    { path: '/contact', label: 'Contact' },
+    { path: '/', label: pick(lang, 'Trang chủ', 'Home') },
+    { path: '/projects', label: pick(lang, 'Dự án', 'Work') },
+    { path: '/about', label: pick(lang, 'Giới thiệu', 'About') },
+    { path: '/contact', label: pick(lang, 'Liên hệ', 'Contact') },
   ];
+  const downloadCvLabel = pick(lang, 'Tải CV', 'Download CV');
 
   return (
     <>
@@ -83,12 +87,13 @@ export default function Header() {
         {/* Right: Theme toggle + CV button + Hamburger */}
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
+          <LangToggle />
 
           <a
             href="#"
             className="group/cv hidden sm:inline-flex items-center justify-center gap-2 h-[40px] px-5 bg-blue-600 text-white text-[13px] font-semibold rounded-full transition-all duration-300 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 dark:hover:shadow-blue-900/50 active:scale-95"
           >
-            <span>Download CV</span>
+            <span>{downloadCvLabel}</span>
             <Icon
               icon="mdi:download"
               className="w-4 h-4 transition-transform duration-300 group-hover/cv:translate-y-0.5"
@@ -99,7 +104,7 @@ export default function Header() {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors p-1"
-            aria-label="Toggle Menu"
+            aria-label={pick(lang, 'Mở menu', 'Toggle menu')}
           >
             <Icon
               icon={isMobileMenuOpen ? 'mdi:close' : 'mdi:menu'}
@@ -120,7 +125,7 @@ export default function Header() {
                 end={item.path === '/'}
                 onClick={closeMenu}
                 className={({ isActive }) =>
-                  `text-2xl font-semibold tracking-tight transition-colors ${
+                  `text-lg font-semibold tracking-tight transition-colors ${
                     isActive
                       ? 'text-blue-600 dark:text-blue-400'
                       : 'text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white'
@@ -136,7 +141,7 @@ export default function Header() {
               onClick={closeMenu}
               className="mt-4 inline-flex items-center justify-center gap-2 h-[48px] px-8 bg-blue-600 text-white text-base font-bold rounded-full transition-all hover:bg-blue-700 active:scale-95"
             >
-              <span>Download CV</span>
+              <span>{downloadCvLabel}</span>
               <Icon icon="mdi:download" className="w-5 h-5" />
             </a>
           </nav>

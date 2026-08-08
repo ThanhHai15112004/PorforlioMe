@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import type { ProjectTag } from '../../constants/projects';
+import { TAG_LABEL, type ProjectTag } from '../../constants/projects';
+import { useLang } from '../../lib/i18n';
 
 interface FilterTabsProps {
   tags: ProjectTag[];
@@ -8,8 +9,9 @@ interface FilterTabsProps {
 }
 
 export default function FilterTabs({ tags, active, onChange }: FilterTabsProps) {
+  const { lang } = useLang();
   return (
-    <div className="flex flex-wrap gap-2" role="tablist" aria-label="Lọc dự án">
+    <div className="flex flex-wrap gap-2" role="tablist" aria-label={lang === 'vi' ? 'Lọc dự án' : 'Filter projects'}>
       {tags.map((tag) => {
         const isActive = tag === active;
         return (
@@ -38,7 +40,7 @@ export default function FilterTabs({ tags, active, onChange }: FilterTabsProps) 
             )}
 
             {/* Label */}
-            <span className="relative z-10">{tag}</span>
+            <span className="relative z-10">{TAG_LABEL[tag][lang]}</span>
           </button>
         );
       })}

@@ -1,36 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
-
-interface FaqItem {
-  q: string;
-  a: string;
-}
-
-const FAQ_ITEMS: FaqItem[] = [
-  {
-    q: 'Bạn có nhận dự án freelance không?',
-    a: 'Tôi sẵn sàng trao đổi về các dự án phù hợp với chuyên môn và thời gian hiện tại. Bạn có thể liên hệ để mình cùng xem xét.',
-  },
-  {
-    q: 'Bạn có làm việc từ xa không?',
-    a: 'Có. Tôi có thể trao đổi và làm việc từ xa thông qua các công cụ quản lý dự án và giao tiếp trực tuyến.',
-  },
-  {
-    q: 'Bạn thường làm việc với công nghệ nào?',
-    a: 'Tôi thường làm việc với Laravel, React, MySQL, SQL Server, Redis, Docker và AWS S3. Chi tiết hơn bạn có thể xem ở trang Giới thiệu.',
-  },
-  {
-    q: 'Tôi có thể xem mã nguồn dự án không?',
-    a: 'Một số dự án cá nhân có thể được công khai trên GitHub. Các dự án doanh nghiệp thường không thể chia sẻ mã nguồn do yêu cầu bảo mật.',
-  },
-  {
-    q: 'Bạn có thể tham gia dự án đang phát triển không?',
-    a: 'Có, nhưng cần đánh giá kiến trúc hiện tại, phạm vi công việc và mức độ ảnh hưởng trước khi tham gia.',
-  },
-];
+import { useLang, pick } from '../../lib/i18n';
+import { FAQ_ITEMS } from '../../constants/contact';
 
 export default function FaqAccordion() {
+  const { lang } = useLang();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
@@ -53,7 +28,7 @@ export default function FaqAccordion() {
               aria-expanded={isOpen}
             >
               <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-snug">
-                {item.q}
+                {pick(lang, item.q.vi, item.q.en)}
               </span>
               <motion.span
                 animate={{ rotate: isOpen ? 45 : 0 }}
@@ -75,7 +50,7 @@ export default function FaqAccordion() {
                   className="overflow-hidden"
                 >
                   <p className="px-5 pb-4 text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-                    {item.a}
+                    {pick(lang, item.a.vi, item.a.en)}
                   </p>
                 </motion.div>
               )}

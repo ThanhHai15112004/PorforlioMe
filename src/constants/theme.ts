@@ -46,18 +46,21 @@ export const FONTS = {
   code: "'Inter', system-ui, sans-serif",
 } as const;
 
+// Giá trị dưới đây khớp với .hero-title / .section-title / .body-text trong src/index.css —
+// đó là nguồn thật đang được các trang dùng; giữ TYPOGRAPHY đồng bộ để tránh lệch khi cần
+// tham chiếu giá trị từ JS/TS (canvas, animation tính toán kích thước, ...).
 export const TYPOGRAPHY = {
   heroTitle: {
-    fontSize: 'clamp(64px, 11vw, 160px)',
-    lineHeight: '0.86',
-    letterSpacing: '-0.07em',
-    fontWeight: '800',
+    fontSize: 'clamp(28px, 3.6vw, 40px)',
+    lineHeight: '1.1',
+    letterSpacing: '-0.02em',
+    fontWeight: '700',
     fontFamily: FONTS.heading,
   },
   sectionTitle: {
-    fontSize: 'clamp(38px, 6vw, 88px)',
-    lineHeight: '0.95',
-    letterSpacing: '-0.05em',
+    fontSize: 'clamp(20px, 2.2vw, 28px)',
+    lineHeight: '1.2',
+    letterSpacing: '-0.01em',
     fontFamily: FONTS.heading,
   },
   body: {

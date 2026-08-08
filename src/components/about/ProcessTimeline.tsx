@@ -1,42 +1,60 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { Icon } from '@iconify/react';
+import { useLang, pick } from '../../lib/i18n';
 
 const STEPS = [
   {
     num: '01',
-    title: 'Hiểu vấn đề',
-    desc: 'Phân tích nhu cầu, người dùng, quy trình hiện tại và mục tiêu thực tế của hệ thống.',
-    icon: '🔍',
+    title: { vi: 'Hiểu vấn đề', en: 'Understand the problem' },
+    desc: {
+      vi: 'Phân tích nhu cầu, người dùng, quy trình hiện tại và mục tiêu thực tế của hệ thống.',
+      en: 'Analyze needs, users, current workflow, and the real goals of the system.',
+    },
+    icon: 'mdi:magnify',
   },
   {
     num: '02',
-    title: 'Thiết kế giải pháp',
-    desc: 'Xác định kiến trúc, phạm vi chức năng, luồng dữ liệu và những rủi ro có thể xảy ra.',
-    icon: '🗺️',
+    title: { vi: 'Thiết kế giải pháp', en: 'Design the solution' },
+    desc: {
+      vi: 'Xác định kiến trúc, phạm vi chức năng, luồng dữ liệu và những rủi ro có thể xảy ra.',
+      en: 'Define architecture, feature scope, data flow, and potential risks.',
+    },
+    icon: 'mdi:map-marker-path',
   },
   {
     num: '03',
-    title: 'Xây dựng',
-    desc: 'Triển khai từng phần theo phạm vi rõ ràng, ưu tiên tính ổn định và khả năng bảo trì.',
-    icon: '⚙️',
+    title: { vi: 'Xây dựng', en: 'Build' },
+    desc: {
+      vi: 'Triển khai từng phần theo phạm vi rõ ràng, ưu tiên tính ổn định và khả năng bảo trì.',
+      en: 'Implement piece by piece within a clear scope, prioritizing stability and maintainability.',
+    },
+    icon: 'mdi:cog-outline',
   },
   {
     num: '04',
-    title: 'Kiểm thử',
-    desc: 'Kiểm tra luồng nghiệp vụ, lỗi biên, hiệu suất và ảnh hưởng đến các module liên quan.',
-    icon: '✅',
+    title: { vi: 'Kiểm thử', en: 'Test' },
+    desc: {
+      vi: 'Kiểm tra luồng nghiệp vụ, lỗi biên, hiệu suất và ảnh hưởng đến các module liên quan.',
+      en: 'Verify business flows, edge cases, performance, and impact on related modules.',
+    },
+    icon: 'mdi:check-circle-outline',
   },
   {
     num: '05',
-    title: 'Vận hành & tối ưu',
-    desc: 'Theo dõi hệ thống, xử lý điểm nghẽn và cải thiện dựa trên dữ liệu sử dụng thực tế.',
-    icon: '📈',
+    title: { vi: 'Vận hành & tối ưu', en: 'Operate & optimize' },
+    desc: {
+      vi: 'Theo dõi hệ thống, xử lý điểm nghẽn và cải thiện dựa trên dữ liệu sử dụng thực tế.',
+      en: 'Monitor the system, resolve bottlenecks, and improve based on real usage data.',
+    },
+    icon: 'mdi:trending-up',
   },
 ];
 
 export default function ProcessTimeline() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const { lang } = useLang();
 
   return (
     <div ref={ref}>
@@ -69,17 +87,17 @@ export default function ProcessTimeline() {
                 transition={{ delay: 0.4 + i * 0.15, type: 'spring', stiffness: 300 }}
                 className="relative z-10 w-14 h-14 rounded-full bg-white dark:bg-white/[0.03] border-2 border-blue-600 flex items-center justify-center shadow-md shadow-blue-100 dark:shadow-blue-950/30 mb-5"
               >
-                <span className="text-xl">{step.icon}</span>
+                <Icon icon={step.icon} className="text-xl text-blue-600 dark:text-blue-400" />
               </motion.div>
 
               {/* Number */}
               <span className="font-black text-xs font-mono text-blue-600 dark:text-blue-400 mb-1">{step.num}</span>
               {/* Title */}
               <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {step.title}
+                {pick(lang, step.title.vi, step.title.en)}
               </h4>
               {/* Desc */}
-              <p className="text-slate-500 dark:text-slate-500 text-xs leading-relaxed">{step.desc}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">{pick(lang, step.desc.vi, step.desc.en)}</p>
             </motion.div>
           ))}
         </div>
@@ -98,7 +116,7 @@ export default function ProcessTimeline() {
             {/* Left: node + line */}
             <div className="flex flex-col items-center shrink-0">
               <div className="w-12 h-12 rounded-full bg-white dark:bg-white/[0.03] border-2 border-blue-600 flex items-center justify-center shadow-sm shadow-blue-100 dark:shadow-blue-950/30 shrink-0 z-10">
-                <span className="text-lg">{step.icon}</span>
+                <Icon icon={step.icon} className="text-lg text-blue-600 dark:text-blue-400" />
               </div>
               {i < STEPS.length - 1 && (
                 <motion.div
@@ -114,9 +132,9 @@ export default function ProcessTimeline() {
             <div className="pb-8">
               <span className="font-black text-xs font-mono text-blue-600 dark:text-blue-400">{step.num}</span>
               <h4 className="font-bold text-slate-900 dark:text-white mt-0.5 mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                {step.title}
+                {pick(lang, step.title.vi, step.title.en)}
               </h4>
-              <p className="text-slate-500 dark:text-slate-500 text-sm leading-relaxed">{step.desc}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{pick(lang, step.desc.vi, step.desc.en)}</p>
             </div>
           </motion.div>
         ))}

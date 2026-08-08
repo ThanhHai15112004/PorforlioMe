@@ -5,6 +5,7 @@ import Projects from '../pages/Projects';
 import ProjectDetail from '../pages/ProjectDetail';
 import About from '../pages/About';
 import Contact from '../pages/Contact';
+import NotFound from '../pages/NotFound';
 
 export const router = createBrowserRouter([
   {
@@ -20,7 +21,7 @@ export const router = createBrowserRouter([
         element: <Projects />,
       },
       {
-        path: 'projects/:id',
+        path: 'projects/:slug',
         element: <ProjectDetail />,
       },
       {
@@ -33,12 +34,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '*',
-        element: (
-          <div className="text-center py-20">
-            <h1 className="text-4xl font-extrabold text-white mb-4">404 - Không tìm thấy trang</h1>
-            <p className="text-slate-400">Đường dẫn này không tồn tại hoặc đã được di chuyển.</p>
-          </div>
-        )
+        element: <NotFound />,
       }
     ],
   },

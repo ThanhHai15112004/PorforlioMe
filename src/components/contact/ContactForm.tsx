@@ -1,6 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
+import { useLang, pick } from '../../lib/i18n';
+import { CONTACT_FORM_SUBJECTS, CONTACT_FORM_TEXT } from '../../constants/contact';
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -18,29 +20,21 @@ interface FormErrors {
   message?: string;
 }
 
-const SUBJECTS = [
-  'Hợp tác dự án',
-  'Cơ hội việc làm',
-  'Trao đổi kỹ thuật',
-  'Yêu cầu tư vấn',
-  'Khác',
-];
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function validate(data: FormData): FormErrors {
+function validate(data: FormData, errText: typeof CONTACT_FORM_TEXT['vi']['errors']): FormErrors {
   const errors: FormErrors = {};
-  if (!data.name.trim()) errors.name = 'Vui lòng nhập họ và tên.';
+  if (!data.name.trim()) errors.name = errText.name;
   if (!data.email.trim()) {
-    errors.email = 'Vui lòng nhập địa chỉ email.';
+    errors.email = errText.emailRequired;
   } else if (!EMAIL_REGEX.test(data.email)) {
-    errors.email = 'Địa chỉ email chưa đúng định dạng.';
+    errors.email = errText.emailInvalid;
   }
-  if (!data.subject) errors.subject = 'Vui lòng chọn chủ đề liên hệ.';
+  if (!data.subject) errors.subject = errText.subject;
   if (!data.message.trim()) {
-    errors.message = 'Vui lòng nhập nội dung tin nhắn.';
+    errors.message = errText.messageRequired;
   } else if (data.message.trim().length < 20) {
-    errors.message = 'Vui lòng nhập thêm thông tin để tôi có thể hiểu rõ yêu cầu.';
+    errors.message = errText.messageShort;
   }
   return errors;
 }
@@ -52,6 +46,8 @@ interface ContactFormProps {
 }
 
 export default function ContactForm({ prefillMessage = '', onPrefillUsed }: ContactFormProps) {
+  const { lang } = useLang();
+  const t = CONTACT_FORM_TEXT[lang];
   const [data, setData] = useState<FormData>({
     name: '',
     email: '',
@@ -60,13 +56,17 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [formState, setFormState] = useState<FormState>('idle');
-  const prevPrefill = useRef(prefillMessage);
+  const [prevPrefill, setPrevPrefill] = useState(prefillMessage);
 
-  // Cập nhật message khi prefill thay đổi từ bên ngoài
-  if (prefillMessage !== prevPrefill.current) {
-    prevPrefill.current = prefillMessage;
-    setData((d) => ({ ...d, message: prefillMessage }));
-    onPrefillUsed?.();
+  // Cập nhật message khi prefill thay đổi từ bên ngoài — điều chỉnh state
+  // ngay trong lúc render (mẫu chính thức của React), tránh cả lỗi đọc ref
+  // lúc render lẫn setState-trong-effect gây render nối tiếp không cần thiết.
+  if (prefillMessage !== prevPrefill) {
+    setPrevPrefill(prefillMessage);
+    if (prefillMessage) {
+      setData((d) => ({ ...d, message: prefillMessage }));
+      onPrefillUsed?.();
+    }
   }
 
   const handleChange = (field: keyof FormData, value: string) => {
@@ -76,7 +76,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate(data);
+    const errs = validate(data, t.errors);
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
@@ -123,10 +123,10 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
         </div>
         <div>
           <h3 className="font-bold text-slate-900 dark:text-white text-xl mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Cảm ơn bạn đã liên hệ!
+            {t.successTitle}
           </h3>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-xs">
-            Tin nhắn đã được gửi thành công. Tôi sẽ đọc nội dung và phản hồi sớm nhất có thể.
+            {t.successDesc}
           </p>
         </div>
         <div className="flex gap-3">
@@ -134,7 +134,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
             onClick={handleReset}
             className="px-5 py-2.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-full hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
           >
-            Gửi tin nhắn khác
+            {t.sendAnother}
           </button>
         </div>
       </motion.div>
@@ -148,13 +148,13 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-            Họ và tên <span className="text-red-400">*</span>
+            {t.nameLabel} <span className="text-red-400">*</span>
           </label>
           <input
             type="text"
             value={data.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            placeholder="Nhập tên của bạn"
+            placeholder={t.namePlaceholder}
             className={fieldClass('name')}
             autoComplete="name"
           />
@@ -162,13 +162,13 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-            Email <span className="text-red-400">*</span>
+            {t.emailLabel} <span className="text-red-400">*</span>
           </label>
           <input
             type="email"
             value={data.email}
             onChange={(e) => handleChange('email', e.target.value)}
-            placeholder="Nhập địa chỉ email"
+            placeholder={t.emailPlaceholder}
             className={fieldClass('email')}
             autoComplete="email"
           />
@@ -179,16 +179,16 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
       {/* Row 2: Subject */}
       <div>
         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-          Chủ đề <span className="text-red-400">*</span>
+          {t.subjectLabel} <span className="text-red-400">*</span>
         </label>
         <select
           value={data.subject}
           onChange={(e) => handleChange('subject', e.target.value)}
           className={`${fieldClass('subject')} cursor-pointer`}
         >
-          <option value="">Chọn chủ đề liên hệ</option>
-          {SUBJECTS.map((s) => (
-            <option key={s} value={s}>{s}</option>
+          <option value="">{t.subjectPlaceholder}</option>
+          {CONTACT_FORM_SUBJECTS.map((s) => (
+            <option key={s.vi} value={s.vi}>{pick(lang, s.vi, s.en)}</option>
           ))}
         </select>
         {errors.subject && <ErrorMsg text={errors.subject} />}
@@ -197,12 +197,12 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
       {/* Row 3: Message */}
       <div>
         <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-          Nội dung <span className="text-red-400">*</span>
+          {t.messageLabel} <span className="text-red-400">*</span>
         </label>
         <textarea
           value={data.message}
           onChange={(e) => handleChange('message', e.target.value)}
-          placeholder="Hãy chia sẻ ngắn gọn về dự án, ý tưởng hoặc nội dung bạn muốn trao đổi..."
+          placeholder={t.messagePlaceholder}
           rows={5}
           className={`${fieldClass('message')} resize-none`}
         />
@@ -228,7 +228,7 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
             className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl text-sm text-red-600 dark:text-red-400"
           >
             <Icon icon="mdi:alert-circle-outline" className="w-4 h-4 shrink-0" />
-            Không thể gửi tin nhắn. Vui lòng thử lại hoặc liên hệ trực tiếp qua email.
+            {t.errorBanner}
           </motion.div>
         )}
       </AnimatePresence>
@@ -250,18 +250,18 @@ export default function ContactForm({ prefillMessage = '', onPrefillUsed }: Cont
         {formState === 'submitting' ? (
           <>
             <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />
-            Đang gửi...
+            {t.submitting}
           </>
         ) : (
           <>
-            Gửi lời nhắn
+            {t.submitIdle}
             <Icon icon="mdi:arrow-right" className="w-4 h-4" />
           </>
         )}
       </button>
 
       <p className="text-center text-xs text-slate-400 dark:text-slate-500">
-        Tôi thường phản hồi trong vòng 24–48 giờ làm việc.
+        {t.responseTime}
       </p>
     </form>
   );

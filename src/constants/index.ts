@@ -15,6 +15,8 @@ export interface Project {
 export interface SocialLink {
   platform: string;
   url: string;
+  icon: string;
+  handle: string;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -52,9 +54,10 @@ export const PROJECTS_LIST: Project[] = [
 ];
 
 export const SOCIAL_LINKS: SocialLink[] = [
-  { platform: 'GitHub', url: '#' },
-  { platform: 'LinkedIn', url: '#' },
-  { platform: 'Twitter', url: '#' }
+  { platform: 'GitHub', url: 'https://github.com/ThanhHai15112004', icon: 'mdi:github', handle: 'ThanhHai15112004' },
+  { platform: 'LinkedIn', url: 'https://www.linkedin.com/in/hai-phan-010666287/', icon: 'mdi:linkedin', handle: 'hai-phan' },
+  { platform: 'Facebook', url: 'https://www.facebook.com/hai.15112004/', icon: 'mdi:facebook', handle: 'hai.15112004' },
+  { platform: 'Zalo', url: 'https://zalo.me/0376149975', icon: 'simple-icons:zalo', handle: '0376149975' }
 ];
 
 export * from './theme';
