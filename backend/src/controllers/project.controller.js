@@ -3,7 +3,6 @@ import { successResponse, errorResponse } from '../helpers/response.js';
 import { HTTP_STATUS } from '../constants/httpStatus.js';
 import * as projectService from '../services/project.service.js';
 
-// Bộ điều khiển lấy danh sách toàn bộ dự án
 export const getProjects = asyncHandler(async (req, res) => {
   const projects = await projectService.getAllProjects();
   return successResponse(res, projects, req.t('PROJECTS_FETCHED'));
