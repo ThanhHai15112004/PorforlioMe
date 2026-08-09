@@ -1,11 +1,14 @@
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
+import { useLocation } from 'react-router-dom';
 import { useLang, pick } from '../lib/i18n';
 import Button from '../components/common/Button';
 import notFoundImg from '../assets/imgs/404/404 Error-pana.png';
 
 export default function NotFound() {
   const { lang } = useLang();
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-[85vh] pt-32 sm:pt-36 pb-20 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-white dark:bg-[#07080D]">
@@ -30,34 +33,51 @@ export default function NotFound() {
 
         {/* Status Badge */}
         <span className="px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 font-mono text-xs font-bold uppercase tracking-widest border border-blue-200 dark:border-blue-800 shadow-xs">
-          404 · Page Not Found
+          404 · {isAdminPath ? pick(lang, 'Lỗi trang Quản trị', 'Admin Error') : pick(lang, 'Không tìm thấy trang', 'Page Not Found')}
         </span>
 
         {/* Title */}
         <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          {pick(lang, 'Trang Bạn Tìm Kiếm Không Tồn Tại', 'Page Not Found')}
+          {isAdminPath
+            ? pick(lang, 'Trang Quản Trị Không Tồn Tại', 'Admin Page Not Found')
+            : pick(lang, 'Trang Bạn Tìm Kiếm Không Tồn Tại', 'Page Not Found')}
         </h1>
 
         {/* Description */}
         <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-lg">
-          {pick(
-            lang,
-            'Đường dẫn này không tồn tại, đã bị di chuyển hoặc thay đổi tên. Hãy quay về trang chủ để tiếp tục khám phá website nhé!',
-            'The link you followed may be broken or the page has been moved. Return to homepage to continue exploring.'
-          )}
+          {isAdminPath
+            ? pick(
+                lang,
+                'Đường dẫn quản trị này không chính xác hoặc trang chưa được khai báo. Vui lòng quay lại Bảng quản trị Dashboard.',
+                'This admin URL is invalid or not found. Please return to the Admin Dashboard.'
+              )
+            : pick(
+                lang,
+                'Đường dẫn này không tồn tại, đã bị di chuyển hoặc thay đổi tên. Hãy quay về trang chủ để tiếp tục khám phá website nhé!',
+                'The link you followed may be broken or the page has been moved. Return to homepage to continue exploring.'
+              )}
         </p>
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3.5 mt-2">
-          <Button to="/" variant="primary" size="md">
-            <Icon icon="mdi:home" className="text-lg" />
-            <span>{pick(lang, 'Quay Về Trang Chủ', 'Back to Home')}</span>
-          </Button>
+          {isAdminPath ? (
+            <Button to="/admin/dashboard" variant="primary" size="md">
+              <Icon icon="ant-design:dashboard-outlined" className="text-lg" />
+              <span>{pick(lang, 'Quay Về Dashboard Admin', 'Back to Admin Dashboard')}</span>
+            </Button>
+          ) : (
+            <>
+              <Button to="/" variant="primary" size="md">
+                <Icon icon="mdi:home" className="text-lg" />
+                <span>{pick(lang, 'Quay Về Trang Chủ', 'Back to Home')}</span>
+              </Button>
 
-          <Button to="/projects" variant="secondary" size="md">
-            <Icon icon="mdi:folder-text-outline" className="text-lg" />
-            <span>{pick(lang, 'Xem Các Dự Án', 'View Projects')}</span>
-          </Button>
+              <Button to="/projects" variant="secondary" size="md">
+                <Icon icon="mdi:folder-text-outline" className="text-lg" />
+                <span>{pick(lang, 'Xem Các Dự Án', 'View Projects')}</span>
+              </Button>
+            </>
+          )}
         </div>
       </motion.div>
     </div>

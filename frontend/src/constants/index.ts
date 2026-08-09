@@ -61,4 +61,6 @@ export const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export * from './theme';
+export * from './admin';
+
 
