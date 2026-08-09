@@ -36,8 +36,22 @@ export default {
 
   HEALTH_CHECK_SUCCESS: 'Kiểm tra trạng thái máy chủ thành công',
 
+  // Thông báo upload media & lưu trữ ảnh (Media Storage)
+  IMAGE_UPLOAD_SUCCESS: 'Tải ảnh lên hệ thống Cloudinary thành công',
+  IMAGE_DELETE_SUCCESS: 'Xóa ảnh khỏi Cloudinary thành công',
+  NO_FILE_PROVIDED: 'Vui lòng chọn tệp hình ảnh để tải lên',
+  INVALID_FILE_TYPE: 'Chỉ chấp nhận các định dạng tệp ảnh (.jpg, .jpeg, .png, .webp)',
+  FILE_TOO_LARGE: 'Kích thước tệp hình ảnh vượt quá giới hạn cho phép (tối đa 5MB)',
+  PUBLIC_ID_REQUIRED: 'Public ID của ảnh là bắt buộc để thực hiện xóa',
+
+  // Thông báo form liên hệ & email (Contact & Mail Integration)
+  CONTACT_MESSAGE_SENT: 'Cảm ơn bạn đã gửi tin nhắn! Tôi sẽ phản hồi sớm nhất có thể.',
+  CONTACT_REQUIRED_FIELDS: 'Vui lòng cung cấp đầy đủ Tên, Email và Nội dung tin nhắn',
+  INVALID_EMAIL_FORMAT: 'Định dạng địa chỉ Email không hợp lệ',
+
   // Các câu nhật ký hệ thống (Console Log)
   SERVER_LISTENING: '[Backend] Máy chủ đang chạy tại cổng',
   GLOBAL_ERROR_LOG: '[Lỗi hệ thống toàn cục]',
   ROUTE_NOT_FOUND_LOG: '[Lỗi không tìm thấy đường dẫn]',
 };
+

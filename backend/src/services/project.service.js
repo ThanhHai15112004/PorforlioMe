@@ -1,5 +1,7 @@
 import slugify from 'slugify';
 import * as projectModel from '#models/project.model.js';
+import { deleteImage } from '#services/upload.service.js';
+import { prisma } from '#config/prisma.js';
 
 // Dịch vụ xử lý nghiệp vụ lấy danh sách dự án (Phân trang + Lọc + i18n)
 export const getProjectsList = async (queryParams) => {
@@ -33,7 +35,29 @@ export const updateProject = async (id, data) => {
   return await projectModel.updateProject(id, data);
 };
 
-// Dịch vụ xử lý nghiệp vụ xóa dự án
+// Dịch vụ xử lý nghiệp vụ xóa dự án (Dọn dẹp ảnh trên Cloudinary trước khi xóa DB)
 export const deleteProject = async (id) => {
-  return await projectModel.deleteProject(id);
+  const numId = Number(id);
+
+  // 1. Kiểm tra và lấy danh sách các ảnh đã lưu trên Cloudinary của dự án
+  const existingProject = await prisma.project.findUnique({
+    where: { id: numId },
+    select: { images: true },
+  });
+
+  if (existingProject && Array.isArray(existingProject.images)) {
+    for (const img of existingProject.images) {
+      if (img && typeof img === 'object' && img.public_id) {
+        try {
+          await deleteImage(img.public_id);
+        } catch (error) {
+          console.error(`[Dọn dẹp Cloudinary] Không thể xóa ảnh ${img.public_id}:`, error);
+        }
+      }
+    }
+  }
+
+  // 2. Xóa bản ghi dự án khỏi cơ sở dữ liệu
+  return await projectModel.deleteProject(numId);
 };
+

@@ -36,8 +36,22 @@ export default {
 
   HEALTH_CHECK_SUCCESS: 'Health status fetched successfully',
 
+  // Thông báo upload media & lưu trữ ảnh (Media Storage)
+  IMAGE_UPLOAD_SUCCESS: 'Image uploaded to Cloudinary successfully',
+  IMAGE_DELETE_SUCCESS: 'Image deleted from Cloudinary successfully',
+  NO_FILE_PROVIDED: 'Please provide an image file to upload',
+  INVALID_FILE_TYPE: 'Only image files are allowed (.jpg, .jpeg, .png, .webp)',
+  FILE_TOO_LARGE: 'File size exceeds maximum limit of 5MB',
+  PUBLIC_ID_REQUIRED: 'Image public ID is required for deletion',
+
+  // Thông báo form liên hệ & email (Contact & Mail Integration)
+  CONTACT_MESSAGE_SENT: 'Thank you for your message! I will get back to you soon.',
+  CONTACT_REQUIRED_FIELDS: 'Name, email, and message are required fields',
+  INVALID_EMAIL_FORMAT: 'Invalid email address format',
+
   // Các câu nhật ký hệ thống (Console Log)
   SERVER_LISTENING: '[Backend] Server listening on',
   GLOBAL_ERROR_LOG: '[Global Error Log]',
   ROUTE_NOT_FOUND_LOG: '[Route Not Found Log]',
 };
+

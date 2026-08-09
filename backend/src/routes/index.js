@@ -2,6 +2,8 @@ import { Router } from 'express';
 import healthRouter from '#routes/health.route.js';
 import projectRouter from '#routes/project.route.js';
 import authRouter from '#routes/auth.route.js';
+import uploadRouter from '#routes/upload.route.js';
+import contactRouter from '#routes/contact.route.js';
 
 const router = Router();
 
@@ -9,5 +11,8 @@ const router = Router();
 router.use('/health', healthRouter);
 router.use('/projects', projectRouter);
 router.use('/auth', authRouter);
+router.use('/upload', uploadRouter);
+router.use('/contact', contactRouter);
 
 export default router;
+
