@@ -1,4 +1,4 @@
-import * as projectModel from '../models/project.model.js';
+import * as projectModel from '#models/project.model.js';
 
 // Dịch vụ xử lý nghiệp vụ lấy danh sách toàn bộ dự án (Thông qua tầng Model)
 export const getAllProjects = async () => {

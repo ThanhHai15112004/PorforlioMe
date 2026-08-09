@@ -1,12 +1,8 @@
+import appRoot from 'app-root-path';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Tải tệp cấu hình .env từ thư mục gốc của workspace hoặc thư mục backend
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// Tải tệp cấu hình .env từ thư mục gốc của dự án bằng app-root-path
+dotenv.config({ path: appRoot.resolve('.env') });
 
 // Xuất các biến môi trường cấu hình hệ thống
 export const env = {

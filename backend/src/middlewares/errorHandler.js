@@ -1,5 +1,5 @@
-import { HTTP_STATUS } from '../constants/httpStatus.js';
-import { getMessage } from '../lang/index.js';
+import { HTTP_STATUS } from '#constants/httpStatus.js';
+import { getMessage } from '#lang/index.js';
 
 // Middleware xử lý lỗi toàn cục cho ứng dụng
 export const globalErrorHandler = (err, req, res, next) => {

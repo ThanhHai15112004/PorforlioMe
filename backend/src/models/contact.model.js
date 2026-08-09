@@ -1,4 +1,4 @@
-import { prisma } from '../config/prisma.js';
+import { prisma } from '#config/prisma.js';
 
 /**
  * Định nghĩa cấu trúc Entity ContactMessage (Mẫu đối tượng Tin nhắn liên hệ)

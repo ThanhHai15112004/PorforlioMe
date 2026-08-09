@@ -1,4 +1,4 @@
-import { HTTP_STATUS } from '../constants/httpStatus.js';
+import { HTTP_STATUS } from '#constants/httpStatus.js';
 
 // Phản hồi phản hồi thành công chuẩn định dạng JSON
 export const successResponse = (res, data = null, message = 'Success', statusCode = HTTP_STATUS.OK) => {

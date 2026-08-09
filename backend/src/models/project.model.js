@@ -1,4 +1,4 @@
-import { prisma } from '../config/prisma.js';
+import { prisma } from '#config/prisma.js';
 
 /**
  * Định nghĩa cấu trúc Entity Project (Mẫu đối tượng Dự án)

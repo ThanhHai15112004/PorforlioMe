@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { env } from './config/env.js';
-import appRouter from './routes/index.js';
-import { globalErrorHandler } from './middlewares/errorHandler.js';
-import { langMiddleware } from './middlewares/langMiddleware.js';
-import { getMessage } from './lang/index.js';
+import { env } from '#config/env.js';
+import appRouter from '#routes/index.js';
+import { globalErrorHandler } from '#middlewares/errorHandler.js';
+import { langMiddleware } from '#middlewares/langMiddleware.js';
+import { getMessage } from '#lang/index.js';
 
 const app = express();
 

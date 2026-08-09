@@ -9,7 +9,7 @@ export default {
   HEALTH_CHECK_SUCCESS: 'Kiểm tra trạng thái máy chủ thành công',
 
   // Các câu nhật ký hệ thống (Console Log)
-  SERVER_LISTENING: '[Backend] Máy chủ đang lắng nghe tại',
+  SERVER_LISTENING: '[Backend] Máy chủ đang chạy tại cổng',
   GLOBAL_ERROR_LOG: '[Lỗi hệ thống toàn cục]',
   ROUTE_NOT_FOUND_LOG: '[Lỗi không tìm thấy đường dẫn]',
 };

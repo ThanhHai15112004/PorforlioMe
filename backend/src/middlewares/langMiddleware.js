@@ -1,4 +1,4 @@
-import { getMessage, DEFAULT_LANG } from '../lang/index.js';
+import { getMessage, DEFAULT_LANG } from '#lang/index.js';
 
 /**
  * Middleware tự động nhận biết ngôn ngữ từ request:

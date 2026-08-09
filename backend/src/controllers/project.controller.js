@@ -1,7 +1,7 @@
-import { asyncHandler } from '../helpers/asyncHandler.js';
-import { successResponse, errorResponse } from '../helpers/response.js';
-import { HTTP_STATUS } from '../constants/httpStatus.js';
-import * as projectService from '../services/project.service.js';
+import { asyncHandler } from '#helpers/asyncHandler.js';
+import { successResponse, errorResponse } from '#helpers/response.js';
+import { HTTP_STATUS } from '#constants/httpStatus.js';
+import * as projectService from '#services/project.service.js';
 
 export const getProjects = asyncHandler(async (req, res) => {
   const projects = await projectService.getAllProjects();
