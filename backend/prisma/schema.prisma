@@ -1,8 +1,8 @@
 // Tệp cấu hình sơ đồ cơ sở dữ liệu Prisma
-// Định nghĩa các bảng dữ liệu cho Portfolio (MySQL Database)
+// Định nghĩa các bảng dữ liệu cho Portfolio (PostgreSQL Database tương thích Vercel & Supabase)
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -44,7 +44,7 @@ model Translation {
   
   lang            String   // Mã ngôn ngữ (vi, en, ja, fr...)
   title           String   // Tiêu đề
-  description     String?  @db.Text // Mô tả ngắn
+  description     String?  // Mô tả ngắn
   highlights      Json?    // Các điểm nổi bật (Mảng JSON)
   content         Json?    // Nội dung chi tiết (Case study, bài viết...)
   
