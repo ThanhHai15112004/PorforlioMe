@@ -8,8 +8,9 @@ export const globalErrorHandler = (err, req, res, next) => {
   // In thông tin lỗi ra console
   console.error(`${getMessage('GLOBAL_ERROR_LOG', lang)}: ${err.stack}`);
 
-  const statusCode = err.statusCode;
-  const message = err.message;
+  // Dùng fallback 500 nếu lỗi không có statusCode (ví dụ: lỗi JavaScript thông thường)
+  const statusCode = Number.isInteger(err.statusCode) ? err.statusCode : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  const message = err.message || getMessage('INTERNAL_ERROR', lang);
 
   res.status(statusCode).json({
     success: false,

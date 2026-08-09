@@ -17,10 +17,11 @@
     "#seeders/*": "./prisma/seeders/*"
   },
   "scripts": {
-    "dev": "node --watch src/server.js",
+    "dev": "prisma generate --schema=prisma/schema.dev.prisma && node --watch src/server.js",
     "start": "node src/server.js",
     "postinstall": "prisma generate --schema=prisma/schema.prisma",
-    "db:push": "prisma db push && prisma db seed",
+    "db:push": "prisma db push --schema=prisma/schema.prisma && prisma db seed --schema=prisma/schema.prisma",
+    "db:push:dev": "prisma db push --schema=prisma/schema.dev.prisma && prisma db seed --schema=prisma/schema.dev.prisma",
     "db:check": "node prisma/scripts/db-check.js"
   },
   "prisma": {

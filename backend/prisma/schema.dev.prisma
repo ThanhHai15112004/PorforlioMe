@@ -1,0 +1,86 @@
+// Tệp cấu hình sơ đồ cơ sở dữ liệu Prisma dành riêng cho Môi trường Local Development (MySQL)
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Mẫu bảng Dự án chính (Project - Lưu thông tin chung không đổi theo ngôn ngữ)
+model Project {
+  id           Int           @id @default(autoincrement())
+  slug         String        @unique
+  tag          String        // LMS, Backend, Frontend, DevOps, Personal
+  role         String        // Vai trò chính (ví dụ: Full-stack Developer)
+  timeline     String        // Thời gian thực hiện (ví dụ: 2025 – 2026)
+  techStack    Json?         // Danh sách công nghệ sử dụng (ví dụ: ["Laravel", "React"])
+  images       Json?         // Mảng đường dẫn hình ảnh [{ "url": "/imgs/p1.png" }]
+  demoUrl      String?       // Đường dẫn xem demo trực tiếp
+  githubUrl    String?       // Đường dẫn mã nguồn GitHub
+  featured     Boolean       @default(false) // Trạng thái nổi bật
+  isPublished  Boolean       @default(true)  // Trạng thái xuất bản hoặc nháp
+  order        Int           @default(0)     // Thứ tự ưu tiên hiển thị
+
+  // Quan hệ 1 - N tới bảng dịch đa ngôn ngữ dùng chung toàn hệ thống
+  translations Translation[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("projects")
+}
+
+// Mẫu bảng Dịch nội dung Đa ngôn ngữ dùng chung Toàn hệ thống (Translation)
+model Translation {
+  id              Int      @id @default(autoincrement())
+  
+  // Quan hệ tới dự án (nếu là bản dịch của dự án)
+  projectId       Int?
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  lang            String   // Mã ngôn ngữ (vi, en, ja, fr...)
+  title           String   // Tiêu đề
+  description     String?  // Mô tả ngắn
+  highlights      Json?    // Các điểm nổi bật (Mảng JSON)
+  content         Json?    // Nội dung chi tiết (Case study, bài viết...)
+  
+  metaTitle       String?  // Thẻ SEO Title
+  metaDescription String?  // Thẻ SEO Description
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([projectId, lang])
+  @@index([lang, title])
+  @@map("translations")
+}
+
+// Mẫu bảng Tài khoản Quản trị viên (Admin)
+model Admin {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique // Tên đăng nhập
+  email     String    @unique // Email quản trị
+  password  String    // Mật khẩu đã được mã hóa băm Bcrypt
+  name      String    // Tên hiển thị
+  avatar    String?   // Ảnh đại diện
+  role      Int       @default(1) // 1: Admin
+  isActive  Boolean   @default(true) // Trạng thái hoạt động
+
+  lastLogin DateTime? // Thời gian đăng nhập gần nhất
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("admins")
+}
+
+// Mẫu bảng Tin nhắn liên hệ (ContactMessage)
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
