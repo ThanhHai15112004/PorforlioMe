@@ -1,80 +1,187 @@
 import { prisma } from '#config/prisma.js';
 
 /**
- * Định nghĩa cấu trúc Entity Project (Mẫu đối tượng Dự án)
- * @typedef {Object} ProjectEntity
- * @property {string} id - Định danh duy nhất (UUID)
- * @property {string} title - Tiêu đề dự án
- * @property {string} slug - Chuỗi định danh URL duy nhất
- * @property {string} description - Mô tả ngắn gọn dự án
- * @property {string|null} content - Nội dung chi tiết bài viết dự án
- * @property {string[]} techStack - Danh sách danh mục công nghệ sử dụng
- * @property {string|null} imageUrl - Đường dẫn hình ảnh minh họa
- * @property {string|null} demoUrl - Đường dẫn xem thử dự án trực tiếp
- * @property {string|null} githubUrl - Đường dẫn mã nguồn GitHub
- * @property {boolean} featured - Trạng thái nổi bật hiển thị ở trang chủ
- * @property {Date} createdAt - Thời gian khởi tạo bản ghi
- * @property {Date} updatedAt - Thời gian cập nhật bản ghi gần nhất
+ * Phẳng hóa dữ liệu dự án trả về theo một ngôn ngữ cụ thể (vi / en...)
  */
+export const formatProjectFlat = (project, lang = 'vi', indexStr = '01') => {
+  if (!project) return null;
 
-// Hàm định dạng và chuẩn hóa dữ liệu Entity Project
-export const formatProjectEntity = (data) => {
-  if (!data) return null;
+  // Lấy bản dịch theo ngôn ngữ lang hoặc lấy bản dịch đầu tiên nếu không tìm thấy
+  const translation = project.translations?.find((t) => t.lang === lang) || project.translations?.[0] || {};
+
+  const techList = Array.isArray(project.techStack) ? project.techStack : [];
+
   return {
-    id: data.id,
-    title: data.title,
-    slug: data.slug,
-    description: data.description,
-    content: data.content || null,
-    techStack: Array.isArray(data.techStack) ? data.techStack : [],
-    imageUrl: data.imageUrl || null,
-    demoUrl: data.demoUrl || null,
-    githubUrl: data.githubUrl || null,
-    featured: Boolean(data.featured),
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
+    id: project.id,
+    slug: project.slug,
+    index: indexStr,
+    lang: translation.lang || lang,
+    title: translation.title || '',
+    description: translation.description || '',
+    highlights: Array.isArray(translation.highlights) ? translation.highlights : [],
+    tag: project.tag || '',
+    role: project.role || '',
+    timeline: project.timeline || '',
+    techStack: techList,
+    tech: techList, // Alias tương thích với Frontend
+    images: Array.isArray(project.images) ? project.images : [],
+    demoUrl: project.demoUrl || null,
+    githubUrl: project.githubUrl || null,
+    featured: Boolean(project.featured),
+    isPublished: Boolean(project.isPublished),
+    order: project.order || 0,
+    content: translation.content || null,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
   };
 };
 
-// --- CÁC HÀM TRUY VẤN CƠ SỞ DỮ LIỆU (DATABASE QUERIES) ---
+// Truy vấn danh sách dự án có phân trang, lọc tag, tìm kiếm và JOIN bảng Translation
+export const findProjects = async ({ page = 1, limit = 6, tag, search, featured, isPublished = true, lang = 'vi' }) => {
+  const pageNum = Math.max(1, Number(page) || 1);
+  const limitNum = Math.max(1, Math.min(50, Number(limit) || 6));
+  const skip = (pageNum - 1) * limitNum;
 
-// Truy vấn danh sách toàn bộ dự án (sắp xếp theo thời gian mới nhất)
-export const findAllProjects = async () => {
-  const projects = await prisma.project.findMany({
-    orderBy: { createdAt: 'desc' },
+  // Xây dựng điều kiện lọc WHERE
+  const where = {
+    ...(isPublished !== null && { isPublished: Boolean(isPublished) }),
+    ...(featured !== undefined && { featured: Boolean(featured) }),
+    ...(tag && tag !== 'Tất cả' && { tag: String(tag).trim() }),
+    ...(search && String(search).trim() && {
+      translations: {
+        some: {
+          lang,
+          OR: [
+            { title: { contains: String(search).trim() } },
+            { description: { contains: String(search).trim() } },
+          ],
+        },
+      },
+    }),
+  };
+
+  const [totalItems, projects] = await Promise.all([
+    prisma.project.count({ where }),
+    prisma.project.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      include: {
+        translations: {
+          where: { lang },
+        },
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limitNum) || 1;
+
+  const formattedData = projects.map((p, idx) => {
+    const globalIdx = (pageNum - 1) * limitNum + idx + 1;
+    const indexStr = String(globalIdx).padStart(2, '0');
+    return formatProjectFlat(p, lang, indexStr);
   });
-  return projects.map(formatProjectEntity);
+
+  return {
+    data: formattedData,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      totalItems,
+      totalPages,
+      hasNextPage: pageNum < totalPages,
+      hasPrevPage: pageNum > 1,
+    },
+  };
 };
 
-// Truy vấn thông tin chi tiết dự án theo slug
-export const findProjectBySlug = async (slug) => {
+// Truy vấn chi tiết một dự án theo slug và JOIN bảng Translation
+export const findProjectBySlug = async (slug, lang = 'vi') => {
+  if (!slug || typeof slug !== 'string' || !slug.trim()) return null;
+
   const project = await prisma.project.findUnique({
-    where: { slug },
+    where: { slug: slug.trim() },
+    include: {
+      translations: true, // Lấy tất cả bản dịch để fallback nếu cần
+    },
   });
-  return formatProjectEntity(project);
+
+  if (!project) return null;
+  return formatProjectFlat(project, lang, '01');
 };
 
-// Tạo mới một bản ghi dự án
-export const createProject = async (projectData) => {
+// Tạo mới dự án kèm danh sách bản dịch (Admin)
+export const createProject = async ({ translations, ...projectData }) => {
   const newProject = await prisma.project.create({
-    data: projectData,
+    data: {
+      ...projectData,
+      ...(translations && Array.isArray(translations) && translations.length > 0 && {
+        translations: {
+          create: translations.map((t) => ({
+            lang: t.lang || 'vi',
+            title: t.title || '',
+            description: t.description || '',
+            highlights: Array.isArray(t.highlights) ? t.highlights : [],
+            content: t.content || null,
+          })),
+        },
+      }),
+    },
+    include: {
+      translations: true,
+    },
   });
-  return formatProjectEntity(newProject);
+
+  return formatProjectFlat(newProject, 'vi');
 };
 
-// Cập nhật thông tin dự án theo ID
-export const updateProject = async (id, projectData) => {
+// Cập nhật thông tin dự án theo ID (Admin)
+export const updateProject = async (id, { translations, ...projectData }) => {
+  const numId = Number(id);
+
+  // 1. Cập nhật bảng Project chính
   const updatedProject = await prisma.project.update({
-    where: { id },
+    where: { id: numId },
     data: projectData,
+    include: { translations: true },
   });
-  return formatProjectEntity(updatedProject);
+
+  // 2. Cập nhật hoặc chèn mới các bản dịch vào bảng Translation dùng chung
+  if (translations && Array.isArray(translations) && translations.length > 0) {
+    for (const t of translations) {
+      await prisma.translation.upsert({
+        where: {
+          projectId_lang: {
+            projectId: numId,
+            lang: t.lang || 'vi',
+          },
+        },
+        update: {
+          title: t.title || '',
+          description: t.description || '',
+          highlights: Array.isArray(t.highlights) ? t.highlights : [],
+          content: t.content || null,
+        },
+        create: {
+          projectId: numId,
+          lang: t.lang || 'vi',
+          title: t.title || '',
+          description: t.description || '',
+          highlights: Array.isArray(t.highlights) ? t.highlights : [],
+          content: t.content || null,
+        },
+      });
+    }
+  }
+
+  return formatProjectFlat(updatedProject, 'vi');
 };
 
-// Xóa dự án theo ID
+// Xóa dự án theo ID (Admin)
 export const deleteProject = async (id) => {
-  const deletedProject = await prisma.project.delete({
-    where: { id },
+  const deleted = await prisma.project.delete({
+    where: { id: Number(id) },
   });
-  return formatProjectEntity(deletedProject);
+  return deleted;
 };
