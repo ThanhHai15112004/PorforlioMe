@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLang, pick } from '../../../lib/i18n';
+import { useLang } from '../../../lib/i18n';
 
 export interface CaseStudyItem {
   id: string;
@@ -27,7 +27,7 @@ export default function AdminCaseStudyItemModal({
   onClose,
   onSave,
 }: AdminCaseStudyItemModalProps) {
-  const { lang } = useLang();
+  const { t } = useLang();
 
   // State Form nhập nội dung mục Case Study
   const [type, setType] = useState<CaseStudyItem['type']>('problem');
@@ -102,8 +102,8 @@ export default function AdminCaseStudyItemModal({
               </div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                 {item
-                  ? pick(lang, 'Chỉnh sửa mục Case Study', 'Edit Case Study Item')
-                  : pick(lang, 'Thêm mục nội dung mới', 'Add New Case Study Item')}
+                  ? t('EDIT_CASE_STUDY_ITEM')
+                  : t('ADD_CASE_STUDY_ITEM')}
               </h3>
             </div>
 
@@ -120,27 +120,27 @@ export default function AdminCaseStudyItemModal({
             {/* Loại mục Case Study */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Phân loại mục', 'Item Section Category')}
+                {t('ITEM_SECTION_CATEGORY')}
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as CaseStudyItem['type'])}
                 className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-[#0D0F17] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold outline-none cursor-pointer"
               >
-                <option value="problem">{pick(lang, 'Bài toán & Vấn đề', 'Problem Statement')}</option>
-                <option value="goal">{pick(lang, 'Mục tiêu dự án', 'Project Goal')}</option>
-                <option value="architecture">{pick(lang, 'Kiến trúc hệ thống', 'System Architecture')}</option>
-                <option value="feature">{pick(lang, 'Tính năng nổi bật', 'Key Feature')}</option>
-                <option value="challenge">{pick(lang, 'Thách thức & Giải pháp', 'Technical Challenge')}</option>
-                <option value="result">{pick(lang, 'Kết quả & Số liệu', 'Result & Metric')}</option>
-                <option value="lesson">{pick(lang, 'Bài học kinh nghiệm', 'Lesson Learned')}</option>
+                <option value="problem">{t('PROBLEM_STATEMENT')}</option>
+                <option value="goal">{t('PROJECT_GOAL')}</option>
+                <option value="architecture">{t('SYSTEM_ARCHITECTURE')}</option>
+                <option value="feature">{t('KEY_FEATURE')}</option>
+                <option value="challenge">{t('TECHNICAL_CHALLENGE')}</option>
+                <option value="result">{t('RESULT_AND_METRIC')}</option>
+                <option value="lesson">{t('LESSON_LEARNED')}</option>
               </select>
             </div>
 
             {/* Tiêu đề Tiếng Việt */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Tiêu đề mục (Tiếng Việt) (*)', 'Item Title (Vietnamese) (*)')}
+                {t('ITEM_TITLE_VI')}
               </label>
               <input
                 type="text"
@@ -155,7 +155,7 @@ export default function AdminCaseStudyItemModal({
             {/* Tiêu đề Tiếng Anh */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Tiêu đề mục (Tiếng Anh)', 'Item Title (English)')}
+                {t('ITEM_TITLE_EN')}
               </label>
               <input
                 type="text"
@@ -169,7 +169,7 @@ export default function AdminCaseStudyItemModal({
             {/* Số liệu / Metric nếu có */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Số liệu đo lường / Metric (Tùy chọn)', 'Metric / Highlight (Optional)')}
+                {t('METRIC_OPTIONAL')}
               </label>
               <input
                 type="text"
@@ -183,7 +183,7 @@ export default function AdminCaseStudyItemModal({
             {/* Nội dung Tiếng Việt */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Nội dung chi tiết (Tiếng Việt)', 'Detailed Content (Vietnamese)')}
+                {t('DETAILED_CONTENT_VI')}
               </label>
               <textarea
                 rows={3}
@@ -197,7 +197,7 @@ export default function AdminCaseStudyItemModal({
             {/* Nội dung Tiếng Anh */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Nội dung chi tiết (Tiếng Anh)', 'Detailed Content (English)')}
+                {t('DETAILED_CONTENT_EN')}
               </label>
               <textarea
                 rows={3}
@@ -216,7 +216,7 @@ export default function AdminCaseStudyItemModal({
               onClick={onClose}
               className="px-4 py-2 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all"
             >
-              {pick(lang, 'Hủy bỏ', 'Cancel')}
+              {t('CANCEL')}
             </button>
 
             <button
@@ -224,7 +224,7 @@ export default function AdminCaseStudyItemModal({
               onClick={handleSave}
               className="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 active:scale-95 transition-all"
             >
-              {pick(lang, 'Lưu mục này', 'Save Item')}
+              {t('SAVE_ITEM')}
             </button>
           </div>
         </motion.div>

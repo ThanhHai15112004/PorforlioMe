@@ -1,93 +1,50 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
-import { getMockAdminProjects, type AdminMockProject } from '../../constants';
-import { useLang, pick } from '../../lib/i18n';
-import AdminCaseStudyItemModal, { type CaseStudyItem } from '../../components/admin/projects/AdminCaseStudyItemModal';
+import { useAdminProjectDetail } from '../../hooks/useAdminProjectDetail';
+import { useLang } from '../../lib/i18n';
 
-type EditTab = 'basic' | 'content' | 'media';
+// Import các sub-component chuyên biệt đã được module hóa
+import TechStackPicker from '../../components/admin/projects/TechStackPicker';
+import ProjectLivePreviewCard from '../../components/admin/projects/ProjectLivePreviewCard';
+import ProjectCompletionChecklist from '../../components/admin/projects/ProjectCompletionChecklist';
+import CaseStudyBuilder from '../../components/admin/projects/CaseStudyBuilder';
+import MediaGalleryEditor from '../../components/admin/projects/MediaGalleryEditor';
+import AdminProjectLivePreviewModal from '../../components/admin/projects/AdminProjectLivePreviewModal';
 
-// Trình soạn thảo Tạo mới & Chỉnh sửa Dự án Admin (3 Tab chuyên sâu & Dynamic Case Study Section Builder)
+type SectionTab = 'general' | 'tech_links' | 'casestudy' | 'media' | 'seo';
+
+// Trình Biên Tập & Tạo Mới Dự Án Portfolio (Có Nút & Modal Xem Trước Lấy Giao Diện Client Gốc Làm Chuẩn)
 export default function AdminProjectEditPage() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { lang } = useLang();
-  const isEditing = Boolean(id);
+  const { t, lang } = useLang();
 
-  // Active Tab State
-  const [activeTab, setActiveTab] = useState<EditTab>('basic');
-  const [isSaving, setIsSaving] = useState(false);
+  // Section Tab đang hoạt động
+  const [activeSection, setActiveSection] = useState<SectionTab>('general');
+
+  // State Modal Xuất Bản, Modal Xem Trước Live Preview & Toast
   const [toastMessage, setToastMessage] = useState('');
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
-  // Form State
-  const [formData, setFormData] = useState<Partial<AdminMockProject>>({
-    title: '',
-    slug: '',
-    tag: 'LMS',
-    isPublished: true,
-    featured: false,
-    role: 'Full-stack Developer',
-    client: '',
-    timeline: '2025 – 2026',
-    techStack: ['Node.js', 'React', 'TypeScript'],
-    demoUrl: '',
-    githubUrl: '',
-    figmaUrl: '',
-    description: '',
-    coverImage: '',
-    gallery: [],
-  });
+  // Tích hợp Custom Hook quản lý dữ liệu và thao tác API cho Editor
+  const {
+    formData,
+    caseStudyItems,
+    setCaseStudyItems,
+    loading,
+    isSaving,
+    error,
+    isEditing,
+    hasUnsavedChanges,
+    lastSavedTime,
+    handleInputChange,
+    saveDraft,
+    publishProject,
+  } = useAdminProjectDetail(id);
 
-  // State danh sách các mục Case Study động
-  const [caseStudyItems, setCaseStudyItems] = useState<CaseStudyItem[]>([
-    {
-      id: 'cs_1',
-      type: 'problem',
-      titleVi: 'Hệ thống cũ bị quá tải khi hơn 5,000 học viên truy cập đồng thời',
-      titleEn: 'Legacy system lagged severely under 5,000+ concurrent students',
-      descVi: 'Thời gian phản hồi API trung bình bị đẩy lên tới 2.5s gây gián đoạn đợt thi học kỳ.',
-      descEn: 'Average API latency reached 2.5s causing disruptions during finals exam period.',
-      metric: 'API Latency > 2.5s',
-    },
-    {
-      id: 'cs_2',
-      type: 'architecture',
-      titleVi: 'Thiết kế kiến trúc phân lớp Express + Prisma & Redis Cache Layer',
-      titleEn: 'Layered Express + Prisma Architecture & Redis Cache Layer',
-      descVi: 'Tối ưu truy vấn cơ sở dữ liệu PostgreSQL và phân luồng hàng chờ Queue HLS streaming.',
-      descEn: 'Optimized PostgreSQL database queries and HLS video streaming queue worker threads.',
-      metric: 'Latency < 45ms',
-    },
-    {
-      id: 'cs_3',
-      type: 'result',
-      titleVi: 'Giảm 85% độ trễ API và phục vụ 50,000+ học viên đồng thời',
-      titleEn: 'Reduced API latency by 85% and served 50,000+ concurrent students',
-      descVi: 'Triển khai thành công đợt thi học kỳ toàn hệ thống không phát sinh bất kỳ lỗi downtime nào.',
-      descEn: 'Successfully deployed system-wide finals exam without a single downtime incident.',
-      metric: '50,000+ Users',
-    },
-  ]);
-
-  // Modal State cho Thêm / Sửa mục Case Study
-  const [isCaseStudyModalOpen, setIsCaseStudyModalOpen] = useState(false);
-  const [editingCaseStudyItem, setEditingCaseStudyItem] = useState<CaseStudyItem | null>(null);
-
-  // State nháp cho tech stack badge input
-  const [techInput, setTechInput] = useState('');
-
-  // Tải dữ liệu ban đầu nếu đang ở chế độ chỉnh sửa (isEditing)
-  useEffect(() => {
-    if (isEditing && id) {
-      const existingProjects = getMockAdminProjects(lang);
-      const found = existingProjects.find((p) => p.id === Number(id));
-      if (found) {
-        setFormData(found);
-      }
-    }
-  }, [id, isEditing, lang]);
-
-  // Tự động tạo Slug chuẩn SEO từ Tiêu đề tiếng Việt
+  // Tự động tạo Slug chuẩn SEO từ Tiêu đề
   const generateSlugFromTitle = () => {
     if (!formData.title) return;
     const slugified = formData.title
@@ -98,669 +55,562 @@ export default function AdminProjectEditPage() {
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-');
-    setFormData((prev) => ({ ...prev, slug: slugified }));
+    handleInputChange('slug', slugified);
   };
 
-  // Thêm một Tech Tag mới
-  const addTechTag = () => {
-    if (!techInput.trim()) return;
-    const current = formData.techStack || [];
-    if (!current.includes(techInput.trim())) {
-      setFormData((prev) => ({ ...prev, techStack: [...current, techInput.trim()] }));
-    }
-    setTechInput('');
-  };
-
-  // Xóa một Tech Tag
-  const removeTechTag = (tagToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      techStack: (prev.techStack || []).filter((t) => t !== tagToRemove),
-    }));
-  };
-
-  // Thêm / Cập nhật mục Case Study từ Modal
-  const handleSaveCaseStudyItem = (item: CaseStudyItem) => {
-    setCaseStudyItems((prev) => {
-      const existsIndex = prev.findIndex((i) => i.id === item.id);
-      if (existsIndex >= 0) {
-        const updated = [...prev];
-        updated[existsIndex] = item;
-        return updated;
-      }
-      return [...prev, item];
-    });
-  };
-
-  // Xóa mục Case Study
-  const handleDeleteCaseStudyItem = (itemId: string) => {
-    setCaseStudyItems((prev) => prev.filter((i) => i.id !== itemId));
-  };
-
-  // Di chuyển thứ tự mục Case Study lên/xuống
-  const moveCaseStudyItem = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === caseStudyItems.length - 1)
-    ) {
-      return;
-    }
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    const updated = [...caseStudyItems];
-    const temp = updated[index];
-    updated[index] = updated[targetIndex];
-    updated[targetIndex] = temp;
-    setCaseStudyItems(updated);
-  };
-
-  // Thêm ảnh vào Gallery
-  const addGalleryItem = () => {
-    const current = formData.gallery || [];
-    setFormData((prev) => ({
-      ...prev,
-      gallery: [
-        ...current,
-        {
-          url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop',
-          captionVi: 'Ảnh minh họa giao diện',
-          captionEn: 'UI Preview screenshot',
-        },
-      ],
-    }));
-  };
-
-  // Xóa ảnh khỏi Gallery
-  const removeGalleryItem = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      gallery: (prev.gallery || []).filter((_, i) => i !== index),
-    }));
-  };
-
-  // Xử lý gửi Form Lưu dự án
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    setTimeout(() => {
-      setIsSaving(false);
-      setToastMessage(
-        pick(
-          lang,
-          isEditing ? 'Đã lưu thay đổi dự án thành công!' : 'Đã tạo dự án mới thành công!',
-          isEditing ? 'Project saved successfully!' : 'New project created successfully!'
-        )
-      );
-
+  // Xử lý Lưu Nháp (Save Draft) qua Hook & API
+  const handleSaveDraft = async () => {
+    const success = await saveDraft();
+    if (success) {
+      setToastMessage(isEditing ? 'Đã lưu bản nháp dự án thành công!' : 'Đã tạo bản nháp dự án mới thành công!');
       setTimeout(() => {
-        navigate('/admin/projects');
-      }, 800);
-    }, 600);
+        setToastMessage('');
+        if (!isEditing) {
+          navigate('/admin/projects');
+        }
+      }, 1200);
+    }
   };
 
-  // Map phân loại Category Badge cho mục Case Study
-  const CATEGORY_MAP = {
-    problem: { labelVi: 'Bài toán', labelEn: 'Problem', color: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200/50' },
-    goal: { labelVi: 'Mục tiêu', labelEn: 'Goal', color: 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200/50' },
-    architecture: { labelVi: 'Kiến trúc', labelEn: 'Architecture', color: 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 border-purple-200/50' },
-    feature: { labelVi: 'Tính năng', labelEn: 'Feature', color: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400 border-cyan-200/50' },
-    challenge: { labelVi: 'Thách thức', labelEn: 'Challenge', color: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200/50' },
-    result: { labelVi: 'Kết quả', labelEn: 'Result', color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200/50' },
-    lesson: { labelVi: 'Bài học', labelEn: 'Lesson', color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border-indigo-200/50' },
+  // Xử lý Xuất bản Dự án (Publish) qua Hook & API
+  const handleConfirmPublish = async () => {
+    setIsPublishModalOpen(false);
+    const success = await publishProject();
+    if (success) {
+      setToastMessage(isEditing ? 'Đã cập nhật xuất bản dự án thành công!' : 'Chúc mừng! Bạn đã tạo và xuất bản dự án mới thành công.');
+      setTimeout(() => {
+        setToastMessage('');
+        navigate('/admin/projects');
+      }, 1200);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="py-20 text-center space-y-3">
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs text-slate-500 font-semibold">Đang tải dữ liệu dự án từ máy chủ...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Trang Chỉnh Sửa */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-black/[0.07] dark:border-white/10">
-        <div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
-            <Link to="/admin/projects" className="hover:text-blue-600 transition-colors">
-              {pick(lang, 'Quản lý dự án', 'Projects Manager')}
-            </Link>
-            <span>/</span>
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">
-              {isEditing ? pick(lang, 'Chỉnh sửa dự án', 'Edit Project') : pick(lang, 'Tạo dự án mới', 'New Project')}
-            </span>
-          </div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            {isEditing
-              ? `${pick(lang, 'Chỉnh sửa:', 'Edit:')} ${formData.title || 'Dự án'}`
-              : pick(lang, 'Tạo dự án mới', 'Create New Project')}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            to="/admin/projects"
-            className="px-4 py-2 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all"
-          >
-            {pick(lang, 'Hủy bỏ', 'Cancel')}
-          </Link>
-
-          <button
-            onClick={handleSubmit}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60"
-          >
-            {isSaving ? (
-              <>
-                <Icon icon="ant-design:loading-outlined" className="w-4 h-4 animate-spin" />
-                <span>{pick(lang, 'Đang lưu...', 'Saving...')}</span>
-              </>
-            ) : (
-              <>
-                <Icon icon="ant-design:save-outlined" className="w-4 h-4" />
-                <span>{pick(lang, 'Lưu dự án', 'Save Project')}</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Thông báo Toast thành công */}
+      {/* Toast thông báo lưu thành công */}
       {toastMessage && (
-        <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
-          <Icon icon="ant-design:check-circle-outlined" className="w-4 h-4" />
+        <div className="fixed top-5 right-5 z-50 px-4 py-3 bg-blue-600 text-white rounded-full shadow-2xl text-xs font-semibold flex items-center gap-2 border border-blue-500 animate-in fade-in slide-in-from-top-3">
+          <Icon icon="ant-design:check-circle-filled" className="w-4 h-4 text-emerald-300" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* 2. Điều Hướng 3 Tab Chỉnh Sửa */}
-      <div className="flex items-center gap-2 p-1.5 rounded-full bg-slate-100/80 dark:bg-white/5 border border-black/[0.05] dark:border-white/10 w-fit">
+      {/* Thông báo Lỗi nếu có */}
+      {error && (
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-semibold flex items-center gap-2 border border-rose-200 dark:border-rose-800">
+          <Icon icon="ant-design:warning-outlined" className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* 1. TOP ACTION BAR: Header Điều Hướng & Trạng Thái Lưu */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-black/[0.07] dark:border-white/10">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/projects"
+            className="p-2 rounded-full text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors border border-black/[0.07] dark:border-white/10"
+            title="Quay lại danh sách dự án"
+          >
+            <Icon icon="ant-design:arrow-left-outlined" className="w-4 h-4" />
+          </Link>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {isEditing ? `Chỉnh sửa dự án: ${formData.title || ''}` : 'Tạo dự án mới'}
+              </h1>
+              <span
+                className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                  formData.isPublished
+                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                    : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                }`}
+              >
+                {formData.isPublished ? 'Đã xuất bản' : 'Bản nháp'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              {hasUnsavedChanges ? (
+                <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  Chưa lưu thay đổi
+                </span>
+              ) : lastSavedTime ? (
+                <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-medium">
+                  <Icon icon="ant-design:check-outlined" className="w-3.5 h-3.5 text-emerald-500" />
+                  Đã lưu lúc {lastSavedTime}
+                </span>
+              ) : (
+                <span>Điền thông tin và bấm Lưu nháp hoặc Xuất bản</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Nút Xem Trước Live & Các Nút Lưu */}
+        <div className="flex flex-wrap items-center gap-3">
+
+
+          {/* Nút XEM TRƯỚC (Live Preview Modal) */}
+          <button
+            type="button"
+            onClick={() => setIsPreviewModalOpen(true)}
+            className="px-4 py-2 text-xs font-semibold rounded-full border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all flex items-center gap-1.5 shadow-2xs"
+          >
+            <Icon icon="ant-design:eye-outlined" className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span>{t('LIVE_PREVIEW')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={isSaving}
+            className="px-4 py-2 text-xs font-semibold rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
+          >
+            {isSaving ? 'Đang lưu...' : 'Lưu nháp'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsPublishModalOpen(true)}
+            disabled={isSaving}
+            className="px-4 py-2 text-xs font-semibold rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <Icon icon="ant-design:send-outlined" className="w-3.5 h-3.5" />
+            <span>{isEditing ? 'Cập nhật Xuất bản' : 'Xuất bản dự án'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. SECTION NAVIGATION TABS — Mẫu Segmented Pill Container Bar 100% */}
+      <div className="flex items-center gap-1 p-1 rounded-full bg-slate-100/80 dark:bg-white/5 border border-black/[0.05] dark:border-white/10 overflow-x-auto w-fit">
         <button
-          type="button"
-          onClick={() => setActiveTab('basic')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-            activeTab === 'basic'
+          onClick={() => setActiveSection('general')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+            activeSection === 'general'
               ? 'bg-white dark:bg-[#0D0F17] text-blue-600 dark:text-blue-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Icon icon="ant-design:info-circle-outlined" className="w-4 h-4" />
-          <span>{pick(lang, '1. Thông tin cơ bản', '1. Basic Info')}</span>
+          <Icon icon="ant-design:file-text-outlined" className="w-3.5 h-3.5" />
+          <span>1. Thông tin chung</span>
         </button>
 
         <button
-          type="button"
-          onClick={() => setActiveTab('content')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-            activeTab === 'content'
+          onClick={() => setActiveSection('tech_links')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+            activeSection === 'tech_links'
               ? 'bg-white dark:bg-[#0D0F17] text-blue-600 dark:text-blue-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Icon icon="ant-design:file-text-outlined" className="w-4 h-4" />
-          <span>{pick(lang, '2. Case Study 12 phần', '2. Case Study Content')}</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[10px] font-bold">
+          <Icon icon="ant-design:code-outlined" className="w-3.5 h-3.5" />
+          <span>2. Công nghệ & Liên kết</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSection('casestudy')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+            activeSection === 'casestudy'
+              ? 'bg-white dark:bg-[#0D0F17] text-blue-600 dark:text-blue-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Icon icon="ant-design:read-outlined" className="w-3.5 h-3.5" />
+          <span>3. Case Study</span>
+          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+            activeSection === 'casestudy'
+              ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+              : 'bg-slate-200/60 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400'
+          }`}>
             {caseStudyItems.length}
           </span>
         </button>
 
         <button
-          type="button"
-          onClick={() => setActiveTab('media')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-            activeTab === 'media'
+          onClick={() => setActiveSection('media')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+            activeSection === 'media'
               ? 'bg-white dark:bg-[#0D0F17] text-blue-600 dark:text-blue-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Icon icon="ant-design:picture-outlined" className="w-4 h-4" />
-          <span>{pick(lang, '3. Bộ sưu tập Media', '3. Media Gallery')}</span>
+          <Icon icon="ant-design:picture-outlined" className="w-3.5 h-3.5" />
+          <span>4. Hình ảnh & Media</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSection('seo')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+            activeSection === 'seo'
+              ? 'bg-white dark:bg-[#0D0F17] text-blue-600 dark:text-blue-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Icon icon="ant-design:global-outlined" className="w-3.5 h-3.5" />
+          <span>5. Thẻ SEO</span>
         </button>
       </div>
 
-      {/* Form Soạn Thảo 3 Tab */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ================= TAB 1: THÔNG TIN CƠ BẢN ================= */}
-        {activeTab === 'basic' && (
-          <div className="glass-card elevate-sm rounded-3xl p-6 bg-white/80 dark:bg-[#0D0F17] border border-black/[0.07] dark:border-white/10 backdrop-blur-xl space-y-5">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-              <Icon icon="ant-design:info-circle-outlined" className="w-4 h-4 text-blue-600" />
-              <span>{pick(lang, 'Cấu hình thông tin cơ bản & đường dẫn', 'Basic Settings & Links')}</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Tiêu đề dự án */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {pick(lang, 'Tiêu đề dự án (*)', 'Project Title (*)')}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Enterprise Learning Management System"
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                />
+      {/* 3. BỐ CỤC 2 CỘT CHÍNH: NỘI DUNG SECTION (CỘT TRÁI) & PREVIEW + CHECKLIST (CỘT PHẢI) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* CỘT TRÁI (lg:col-span-8): NỘI DUNG CÁC SECTION EDIT FORM */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* SECTION 1: THÔNG TIN CHUNG DỰ ÁN */}
+          {activeSection === 'general' && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5 shadow-sm">
+              <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  THÔNG TIN DỰ ÁN (PROJECT IDENTITY)
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Định danh tên dự án, đường dẫn slug SEO và phân loại vai trò.
+                </p>
               </div>
 
-              {/* Slug URL */}
+              {/* Tên dự án & Slug */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Tên dự án *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.title || ''}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    onBlur={generateSlugFromTitle}
+                    placeholder="VD: Enterprise Learning Management System"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Đường dẫn Slug (URL) *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateSlugFromTitle}
+                      className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Tạo từ tên dự án
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.slug || ''}
+                    onChange={(e) => handleInputChange('slug', e.target.value)}
+                    placeholder="enterprise-lms"
+                    className="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Phân loại Tag & Vai trò */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Danh mục Tag *
+                  </label>
+                  <select
+                    value={formData.tag || 'LMS'}
+                    onChange={(e) => handleInputChange('tag', e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none font-semibold"
+                  >
+                    <option value="LMS">LMS Enterprise</option>
+                    <option value="Backend">Backend / API</option>
+                    <option value="Frontend">Frontend / Web</option>
+                    <option value="DevOps">DevOps & Cloud</option>
+                    <option value="Personal">Dự án Cá nhân</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Vai trò chính
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.role || ''}
+                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    placeholder="VD: Full-stack Developer"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Thời gian thực hiện
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.timeline || ''}
+                    onChange={(e) => handleInputChange('timeline', e.target.value)}
+                    placeholder="VD: 2025 – 2026"
+                    className="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Mô tả ngắn dự án */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {pick(lang, 'Slug URL (*)', 'URL Slug (*)')}
+                    Mô tả ngắn dự án ({lang === 'vi' ? 'Tiếng Việt' : 'English'})
                   </label>
-                  <button
-                    type="button"
-                    onClick={generateSlugFromTitle}
-                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    {pick(lang, 'Tạo từ Tiêu đề', 'Auto-generate')}
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={formData.slug || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-                  placeholder="enterprise-lms"
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-mono outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                />
-              </div>
-
-              {/* Danh mục Tag */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {pick(lang, 'Danh mục Tag', 'Category Tag')}
-                </label>
-                <select
-                  value={formData.tag || 'LMS'}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, tag: e.target.value }))}
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-[#0D0F17] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold outline-none cursor-pointer"
-                >
-                  <option value="LMS">LMS Enterprise</option>
-                  <option value="Backend">Backend Streaming</option>
-                  <option value="Frontend">Frontend Web App</option>
-                  <option value="DevOps">DevOps Automation</option>
-                  <option value="Personal">Personal Portfolio</option>
-                </select>
-              </div>
-
-              {/* Vai trò */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {pick(lang, 'Vai trò của bạn', 'Your Role')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.role || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, role: e.target.value }))}
-                  placeholder="Lead Full-stack Developer"
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium outline-none focus:border-blue-500 transition-all"
-                />
-              </div>
-
-              {/* Khách hàng */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {pick(lang, 'Khách hàng / Doanh nghiệp', 'Client / Enterprise')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.client || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, client: e.target.value }))}
-                  placeholder="EdTech Enterprise"
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium outline-none focus:border-blue-500 transition-all"
-                />
-              </div>
-
-              {/* Thời gian */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {pick(lang, 'Thời gian thực hiện', 'Timeline')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.timeline || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, timeline: e.target.value }))}
-                  placeholder="2025 – 2026"
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium outline-none focus:border-blue-500 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Mô tả ngắn */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {pick(lang, 'Mô tả ngắn tóm tắt', 'Short Summary Description')}
-              </label>
-              <textarea
-                rows={2}
-                value={formData.description || ''}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="Nền tảng quản lý học tập trực tuyến doanh nghiệp phục vụ 50,000+ học viên đồng thời..."
-                className="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium outline-none focus:border-blue-500 transition-all resize-none"
-              />
-            </div>
-
-            {/* Tech Stack Badge Management */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {pick(lang, 'Công nghệ sử dụng (Tech Stack)', 'Tech Stack Badges')}
-              </label>
-              <div className="flex items-center gap-2 mb-2">
-                <input
-                  type="text"
-                  value={techInput}
-                  onChange={(e) => setTechInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTechTag())}
-                  placeholder="Nhập tên công nghệ (Node.js, React...)"
-                  className="h-9 px-3 rounded-full bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500 w-64"
-                />
-                <button
-                  type="button"
-                  onClick={addTechTag}
-                  className="h-9 px-4 rounded-full bg-slate-900 dark:bg-white hover:bg-slate-800 text-white dark:text-slate-900 text-xs font-semibold transition-all"
-                >
-                  {pick(lang, 'Thêm', 'Add')}
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                {(formData.techStack || []).map((tech, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200/50 dark:border-blue-800/40 text-blue-600 dark:text-blue-400 text-xs font-mono font-medium"
-                  >
-                    <span>{tech}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeTechTag(tech)}
-                      className="hover:text-rose-500"
-                    >
-                      <Icon icon="ant-design:close-outlined" className="w-3 h-3" />
-                    </button>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {(formData.description || '').length} / 180 ký tự
                   </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Đường dẫn Demo & Repositories */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Link Live Demo
-                </label>
-                <input
-                  type="url"
-                  value={formData.demoUrl || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, demoUrl: e.target.value }))}
-                  placeholder="https://lms.thanhhai.dev"
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono outline-none focus:border-blue-500 transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Link GitHub Repository
-                </label>
-                <input
-                  type="url"
-                  value={formData.githubUrl || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, githubUrl: e.target.value }))}
-                  placeholder="https://github.com/ThanhHai15112004/..."
-                  className="w-full h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono outline-none focus:border-blue-500 transition-all"
+                </div>
+                <textarea
+                  rows={3}
+                  value={
+                    lang === 'vi'
+                      ? formData.description || ''
+                      : formData.overviewEn || ''
+                  }
+                  onChange={(e) =>
+                    handleInputChange(
+                      lang === 'vi' ? 'description' : 'overviewEn',
+                      e.target.value
+                    )
+                  }
+                  placeholder="Nhập mô tả ngắn gọn giúp thu hút người đọc trên card dự án..."
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:outline-none transition-all resize-y"
                 />
               </div>
             </div>
+          )}
 
-            {/* Cài đặt Xuất bản & Nổi bật */}
-            <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-slate-100 dark:border-white/5">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={formData.isPublished ?? true}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, isPublished: e.target.checked }))}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  {pick(lang, 'Xuất bản ngay lập tức', 'Publish immediately')}
-                </span>
-              </label>
+          {/* SECTION 2: CÔNG NGHỆ SỬ DỤNG & LIÊN KẾT */}
+          {activeSection === 'tech_links' && (
+            <div className="space-y-6">
+              {/* Tech Stack Picker */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    CÔNG NGHỆ SỬ DỤNG (TECH STACK)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Quản lý danh sách các công nghệ, framework và thư viện được dùng trong dự án này.
+                  </p>
+                </div>
 
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={formData.featured ?? false}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, featured: e.target.checked }))}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                <TechStackPicker
+                  selectedTechs={formData.techStack || []}
+                  onChange={(techs) => handleInputChange('techStack', techs)}
                 />
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                  <Icon icon="ant-design:star-filled" className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{pick(lang, 'Đánh dấu làm Dự án Nổi bật', 'Set as Featured Project')}</span>
-                </span>
-              </label>
+              </div>
+
+              {/* Đường dẫn liên kết Demo, GitHub, Figma */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    ĐƯỜNG DẪN LIÊN KẾT (PROJECT LINKS)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Các đường dẫn trực tiếp giúp người xem truy cập sản phẩm hoặc mã nguồn.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                      <Icon icon="ant-design:link-outlined" className="w-3.5 h-3.5 text-blue-500" />
+                      <span>URL Xem Demo trực tiếp</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.demoUrl || ''}
+                      onChange={(e) => handleInputChange('demoUrl', e.target.value)}
+                      placeholder="https://demo.thanhhai.dev"
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                      <Icon icon="ant-design:github-outlined" className="w-3.5 h-3.5 text-slate-800 dark:text-white" />
+                      <span>URL Mã nguồn GitHub</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.githubUrl || ''}
+                      onChange={(e) => handleInputChange('githubUrl', e.target.value)}
+                      placeholder="https://github.com/..."
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+                      <Icon icon="ant-design:skin-outlined" className="w-3.5 h-3.5 text-purple-500" />
+                      <span>URL Bản vẽ Figma</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.figmaUrl || ''}
+                      onChange={(e) => handleInputChange('figmaUrl', e.target.value)}
+                      placeholder="https://figma.com/file/..."
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ================= TAB 2: CASE STUDY DYNAMIC SECTION BUILDER ================= */}
-        {activeTab === 'content' && (
-          <div className="glass-card elevate-sm rounded-3xl p-6 bg-white/80 dark:bg-[#0D0F17] border border-black/[0.07] dark:border-white/10 backdrop-blur-xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/5 pb-4">
+          {/* SECTION 3: NỘI DUNG CASE STUDY (CASE STUDY BUILDER 12 PHẦN) */}
+          {activeSection === 'casestudy' && (
+            <CaseStudyBuilder
+              items={caseStudyItems}
+              onChange={(updated) => {
+                setCaseStudyItems(updated);
+              }}
+              activeLang={lang}
+            />
+          )}
+
+          {/* SECTION 4: HÌNH ẢNH & MEDIA GALLERY */}
+          {activeSection === 'media' && (
+            <MediaGalleryEditor
+              coverImage={formData.coverImage || ''}
+              onCoverChange={(url) => handleInputChange('coverImage', url)}
+            />
+          )}
+
+          {/* SECTION 5: THẺ SEO META */}
+          {activeSection === 'seo' && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Icon icon="ant-design:file-text-outlined" className="w-4 h-4 text-blue-600" />
-                  <span>{pick(lang, 'Trình quản lý các mục nội dung Case Study', 'Case Study Dynamic Section Builder')}</span>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  CẤU HÌNH TỐI ƯU HÓA TÌM KIẾM (SEO META)
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {pick(
-                    lang,
-                    'Tự do thêm, sửa, xóa và thay đổi thứ tự các phần nội dung của bài Case Study.',
-                    'Add, edit, remove, and re-order case study sections dynamically.'
-                  )}
+                  Tùy chỉnh thẻ tiêu đề và mô tả xuất hiện khi tìm kiếm Google hoặc chia sẻ liên kết trên Mạng xã hội.
                 </p>
               </div>
 
-              {/* Nút bấm mở Modal Thêm mục mới */}
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCaseStudyItem(null);
-                  setIsCaseStudyModalOpen(true);
-                }}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all self-start sm:self-auto"
-              >
-                <Icon icon="ant-design:plus-outlined" className="w-4 h-4" />
-                <span>{pick(lang, 'Thêm mục nội dung mới', 'Add New Section Item')}</span>
-              </button>
-            </div>
-
-            {/* Danh sách các mục Case Study đã thêm */}
-            {caseStudyItems.length === 0 ? (
-              <div className="p-8 text-center border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
-                <Icon icon="ant-design:file-add-outlined" className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {pick(lang, 'Chưa có mục Case Study nào', 'No Case Study items added yet')}
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  {pick(lang, 'Bấm nút "+ Thêm mục nội dung mới" ở trên để bổ sung bài toán, mục tiêu hoặc kết quả.', 'Click "+ Add New Section Item" above to add problems, goals, or metrics.')}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {caseStudyItems.map((csItem, index) => {
-                  const cat = CATEGORY_MAP[csItem.type] || CATEGORY_MAP.problem;
-
-                  return (
-                    <div
-                      key={csItem.id}
-                      className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-blue-300/50 transition-all"
-                    >
-                      <div className="flex items-start gap-3 overflow-hidden">
-                        {/* Nút điều hướng thứ tự lên/xuống */}
-                        <div className="flex flex-col gap-1 shrink-0 pt-0.5">
-                          <button
-                            type="button"
-                            disabled={index === 0}
-                            onClick={() => moveCaseStudyItem(index, 'up')}
-                            className="p-1 rounded text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                            title={pick(lang, 'Di chuyển lên', 'Move Up')}
-                          >
-                            <Icon icon="ant-design:arrow-up-outlined" className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={index === caseStudyItems.length - 1}
-                            onClick={() => moveCaseStudyItem(index, 'down')}
-                            className="p-1 rounded text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                            title={pick(lang, 'Di chuyển xuống', 'Move Down')}
-                          >
-                            <Icon icon="ant-design:arrow-down-outlined" className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-
-                        <div className="space-y-1 truncate">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${cat.color}`}
-                            >
-                              {lang === 'vi' ? cat.labelVi : cat.labelEn}
-                            </span>
-                            {csItem.metric && (
-                              <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 dark:bg-white/10 text-slate-800 dark:text-slate-200 text-[10px] font-mono font-bold">
-                                {csItem.metric}
-                              </span>
-                            )}
-                          </div>
-                          <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {lang === 'vi' ? csItem.titleVi : csItem.titleEn}
-                          </h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                            {lang === 'vi' ? csItem.descVi : csItem.descEn}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Nút Thao tác Sửa / Xóa */}
-                      <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingCaseStudyItem(csItem);
-                            setIsCaseStudyModalOpen(true);
-                          }}
-                          className="p-2 rounded-full text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
-                          title={pick(lang, 'Chỉnh sửa mục này', 'Edit Item')}
-                        >
-                          <Icon icon="ant-design:edit-outlined" className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCaseStudyItem(csItem.id)}
-                          className="p-2 rounded-full text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                          title={pick(lang, 'Xóa mục này', 'Delete Item')}
-                        >
-                          <Icon icon="ant-design:delete-outlined" className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ================= TAB 3: MEDIA & CLOUDINARY ================= */}
-        {activeTab === 'media' && (
-          <div className="glass-card elevate-sm rounded-3xl p-6 bg-white/80 dark:bg-[#0D0F17] border border-black/[0.07] dark:border-white/10 backdrop-blur-xl space-y-6">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-white/5 pb-3">
-              <Icon icon="ant-design:picture-outlined" className="w-4 h-4 text-blue-600" />
-              <span>{pick(lang, 'Ảnh Cover Thumbnail & Bộ sưu tập Gallery', 'Cover Image & Gallery Assets')}</span>
-            </h3>
-
-            {/* Ảnh Cover Thumbnail */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {pick(lang, 'Đường dẫn Ảnh Cover Thumbnail', 'Cover Thumbnail Image URL')}
-              </label>
-              <div className="flex items-center gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Thẻ SEO Title
+                </label>
                 <input
-                  type="url"
-                  value={formData.coverImage || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, coverImage: e.target.value }))}
-                  placeholder="https://images.unsplash.com/photo-1555066931-4365d14bab8c"
-                  className="flex-1 h-10 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono outline-none focus:border-blue-500 transition-all"
+                  type="text"
+                  value={formData.title ? `${formData.title} | Thanh Hải Portfolio` : ''}
+                  readOnly
+                  placeholder="Tiêu đề bài viết SEO..."
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none"
                 />
               </div>
 
-              {formData.coverImage && (
-                <div className="mt-3 relative w-full max-w-sm h-40 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10">
-                  <img
-                    src={formData.coverImage}
-                    alt="Cover preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Thẻ SEO Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.description || ''}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Mô tả SEO xuất hiện trên kết quả tìm kiếm..."
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none resize-y"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* CỘT PHẢI (lg:col-span-4): STICKY WIDGET CHECKLIST HOÀN THIỆN & LIVE PREVIEW */}
+        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-6">
+          {/* Checklist Hoàn Thiện */}
+          <ProjectCompletionChecklist
+            project={formData}
+            caseStudyCount={caseStudyItems.length}
+            hasEnTranslation={caseStudyItems.some((i) => Boolean(i.titleEn || i.descEn))}
+          />
+
+          {/* Live Preview Card */}
+          <ProjectLivePreviewCard project={formData} />
+        </div>
+      </div>
+
+      {/* MODAL XEM TRƯỚC GIAO DIỆN CLIENT GỐC (LIVE PREVIEW MODAL) */}
+      {isPreviewModalOpen && (
+        <AdminProjectLivePreviewModal
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          project={formData}
+          caseStudyItems={caseStudyItems}
+        />
+      )}
+
+      {/* MODAL XÁC NHẬN XUẤT BẢN */}
+      {isPublishModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <Icon icon="ant-design:send-outlined" className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {isEditing ? 'Cập nhật xuất bản dự án?' : 'Xuất bản dự án mới?'}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Dự án sẽ xuất hiện trực tiếp trên trang Portfolio cá nhân của bạn.
+                </p>
+              </div>
             </div>
 
-            {/* Bộ sưu tập Gallery */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {pick(lang, 'Bộ sưu tập Ảnh Gallery', 'Gallery Screenshots')}
-                </label>
-                <button
-                  type="button"
-                  onClick={addGalleryItem}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-100 transition-all"
-                >
-                  <Icon icon="ant-design:plus-outlined" className="w-3.5 h-3.5" />
-                  <span>{pick(lang, 'Thêm ảnh mới', 'Add Screenshot')}</span>
-                </button>
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs space-y-1.5 border border-slate-200 dark:border-slate-700">
+              <div className="font-semibold text-slate-800 dark:text-slate-200">
+                Kiểm tra thông tin trước khi xuất bản:
               </div>
-
-              <div className="space-y-3">
-                {(formData.gallery || []).map((item, index) => (
-                  <div
-                    key={index}
-                    className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 flex items-center justify-between gap-3"
-                  >
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-200 shrink-0">
-                      <img src={item.url} alt="Gallery" className="w-full h-full object-cover" />
-                    </div>
-
-                    <div className="flex-1 space-y-1">
-                      <input
-                        type="url"
-                        value={item.url}
-                        onChange={(e) => {
-                          const updated = [...(formData.gallery || [])];
-                          updated[index].url = e.target.value;
-                          setFormData((prev) => ({ ...prev, gallery: updated }));
-                        }}
-                        className="w-full h-7 px-2.5 rounded-lg bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs font-mono outline-none"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeGalleryItem(index)}
-                      className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
-                    >
-                      <Icon icon="ant-design:delete-outlined" className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                <span>• Tiêu đề dự án:</span>
+                <span className="font-semibold">{formData.title || 'Chưa nhập'}</span>
               </div>
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                <span>• Case Study:</span>
+                <span className="font-semibold">{caseStudyItems.length} mục nội dung</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                <span>• Ảnh đại diện:</span>
+                <span className="font-semibold">{formData.coverImage ? 'Đã có' : 'Chưa có'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsPublishModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors"
+              >
+                Quay lại chỉnh sửa
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmPublish}
+                disabled={isSaving}
+                className="px-4 py-2 text-xs font-semibold rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+              >
+                {isSaving ? 'Đang gửi...' : 'Xác nhận Xuất bản'}
+              </button>
             </div>
           </div>
-        )}
-      </form>
-
-      {/* 4. Modal Thêm / Chỉnh Sửa Mục Case Study */}
-      <AdminCaseStudyItemModal
-        isOpen={isCaseStudyModalOpen}
-        item={editingCaseStudyItem}
-        onClose={() => setIsCaseStudyModalOpen(false)}
-        onSave={handleSaveCaseStudyItem}
-      />
+        </div>
+      )}
     </div>
   );
 }

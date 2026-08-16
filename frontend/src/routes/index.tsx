@@ -66,9 +66,14 @@ export const router = createBrowserRouter([
         element: <AdminProjectsPage />,
       },
       {
+        path: 'projects/create',
+        element: <AdminProjectEditPage />,
+      },
+      {
         path: 'projects/new',
         element: <AdminProjectEditPage />,
       },
+
       {
         path: 'projects/:id',
         element: <AdminProjectDetailPage />,

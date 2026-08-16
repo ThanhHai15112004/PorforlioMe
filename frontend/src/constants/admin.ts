@@ -22,6 +22,7 @@ export interface AdminMockProject {
   demoUrl?: string;
   githubUrl?: string;
   figmaUrl?: string;
+  images?: { url: string; captionVi?: string; captionEn?: string }[];
   gallery?: { url: string; captionVi: string; captionEn: string }[];
   overviewVi?: string;
   overviewEn?: string;
@@ -355,3 +356,52 @@ export function getMockAdminTrafficData(lang: 'vi' | 'en'): AdminTrafficData[] {
     { day: isVi ? 'Chủ nhật' : 'Sun', views: 290, height: '70%' },
   ];
 }
+
+// Kết quả tính toán mức độ hoàn thiện của Dự án
+export interface ProjectCompletenessResult {
+  percentage: number;
+  completedItemsCount: number;
+  totalItemsCount: number;
+  missingItems: string[];
+  statusText: string;
+}
+
+// Hàm tính toán mức độ hoàn thiện dữ liệu của Dự án theo các tiêu chuẩn nội dung
+export function calculateProjectCompleteness(
+  project: Partial<AdminMockProject>,
+  caseStudyCount: number = 0,
+  hasEnTranslation: boolean = false
+): ProjectCompletenessResult {
+  const checks = [
+    { label: 'TITLE_SLUG_REQ', valid: Boolean(project.title && project.slug) },
+    { label: 'CATEGORY_ROLE_REQ', valid: Boolean(project.tag && project.role) },
+    { label: 'TECH_STACK_REQ', valid: Boolean(project.techStack && project.techStack.length > 0) },
+    { label: 'SHORT_DESC_REQ', valid: Boolean(project.description && project.description.trim().length > 10) },
+    { label: 'COVER_IMAGE_REQ', valid: Boolean(project.coverImage) },
+    { label: 'DEMO_GITHUB_REQ', valid: Boolean(project.demoUrl || project.githubUrl) },
+    { label: 'CS_CONTENT_REQ', valid: caseStudyCount > 0 },
+    { label: 'EN_TRANSLATION_REQ', valid: hasEnTranslation || Boolean(project.overviewEn) },
+  ];
+
+  const completed = checks.filter((item) => item.valid).length;
+  const total = checks.length;
+  const percentage = Math.round((completed / total) * 100);
+
+  const missingItems = checks.filter((item) => !item.valid).map((item) => item.label);
+
+  let statusTextKey = 'STATUS_READY';
+  if (percentage < 50) {
+    statusTextKey = 'STATUS_DRAFT';
+  } else if (percentage < 85) {
+    statusTextKey = 'STATUS_IN_PROGRESS';
+  }
+
+  return {
+    percentage,
+    completedItemsCount: completed,
+    totalItemsCount: total,
+    missingItems,
+    statusText: statusTextKey,
+  };
+}
+

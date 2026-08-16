@@ -3,19 +3,21 @@ import { API_BASE_URL } from '../constants/api';
 
 /**
  * Client gọi API dùng chung bọc Fetch API tiêu chuẩn
- * Tự động gắn Header Accept-Language và Content-Type
+ * Tự động gắn Header Authorization (Bearer Token), Accept-Language và Content-Type
  */
 export const apiClient = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> => {
   const currentLang = localStorage.getItem('app_lang');
+  const adminToken = localStorage.getItem('admin_token');
 
   const config: RequestInit = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...(currentLang && { 'Accept-Language': currentLang }),
+      ...(adminToken && { Authorization: `Bearer ${adminToken}` }),
       ...options.headers,
     },
   };

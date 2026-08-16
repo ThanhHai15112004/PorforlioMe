@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AdminMockProject } from '../../../constants';
-import { useLang, pick } from '../../../lib/i18n';
+import { useLang } from '../../../lib/i18n';
 
 interface AdminProjectDetailModalProps {
   project: AdminMockProject | null;
@@ -15,7 +15,7 @@ export default function AdminProjectDetailModal({
   isOpen,
   onClose,
 }: AdminProjectDetailModalProps) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
 
   if (!isOpen || !project) return null;
 
@@ -78,20 +78,20 @@ export default function AdminProjectDetailModal({
                 />
                 <span>
                   {project.isPublished
-                    ? pick(lang, 'Đã xuất bản', 'Published')
-                    : pick(lang, 'Bản nháp', 'Draft')}
+                    ? t('PUBLISHED')
+                    : t('DRAFT')}
                 </span>
               </span>
 
               {project.featured && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/50">
                   <Icon icon="ant-design:star-filled" className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{pick(lang, 'Dự án Nổi bật', 'Featured Project')}</span>
+                  <span>{t('FEATURED_PROJECT')}</span>
                 </span>
               )}
 
               <span className="text-xs text-slate-400 ml-auto">
-                {pick(lang, 'Cập nhật:', 'Updated:')} {project.updatedAt}
+                {t('UPDATED_LABEL')} {project.updatedAt}
               </span>
             </div>
 
@@ -99,7 +99,7 @@ export default function AdminProjectDetailModal({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
               <div>
                 <span className="text-[11px] text-slate-400 block font-medium">
-                  {pick(lang, 'Vai trò', 'Role')}
+                  {t('ROLE')}
                 </span>
                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   {project.role || 'Full-stack Developer'}
@@ -107,7 +107,7 @@ export default function AdminProjectDetailModal({
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 block font-medium">
-                  {pick(lang, 'Khách hàng', 'Client')}
+                  {t('CLIENT')}
                 </span>
                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   {project.client || 'Enterprise'}
@@ -115,7 +115,7 @@ export default function AdminProjectDetailModal({
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 block font-medium">
-                  {pick(lang, 'Thời gian', 'Timeline')}
+                  {t('TIMELINE')}
                 </span>
                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   {project.timeline || '2025 – 2026'}
@@ -127,7 +127,7 @@ export default function AdminProjectDetailModal({
             {project.description && (
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
-                  {pick(lang, 'Mô tả ngắn', 'Short Description')}
+                  {t('SHORT_DESC')}
                 </h4>
                 <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   {project.description}
@@ -139,24 +139,24 @@ export default function AdminProjectDetailModal({
             {project.overviewVi && (
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  {pick(lang, 'Case Study tóm tắt', 'Case Study Summary')}
+                  {t('CASE_STUDY_SUMMARY')}
                 </h4>
                 <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-xs sm:text-sm text-slate-700 dark:text-slate-300 space-y-2">
                   <p>
                     <strong className="text-blue-600 dark:text-blue-400">
-                      {pick(lang, 'Bài toán:', 'Problem:')}
+                      {t('PROBLEM')}
                     </strong>{' '}
                     {lang === 'vi' ? project.problemsVi : project.problemsEn}
                   </p>
                   <p>
                     <strong className="text-emerald-600 dark:text-emerald-400">
-                      {pick(lang, 'Giải pháp kiến trúc:', 'Architectural Solution:')}
+                      {t('ARCH_SOLUTION')}
                     </strong>{' '}
                     {lang === 'vi' ? project.solutionsVi : project.solutionsEn}
                   </p>
                   <p>
                     <strong className="text-purple-600 dark:text-purple-400">
-                      {pick(lang, 'Kết quả đạt được:', 'Results & Metrics:')}
+                      {t('RESULTS_METRICS')}
                     </strong>{' '}
                     {lang === 'vi' ? project.resultsVi : project.resultsEn}
                   </p>
@@ -168,7 +168,7 @@ export default function AdminProjectDetailModal({
             {project.techStack && project.techStack.length > 0 && (
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  {pick(lang, 'Công nghệ sử dụng', 'Tech Stack')}
+                  {t('TECH_STACK')}
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {project.techStack.map((tech, idx) => (
@@ -192,7 +192,7 @@ export default function AdminProjectDetailModal({
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-all"
                 >
-                  <span>{pick(lang, 'Xem Demo trực tiếp', 'Live Demo')}</span>
+                  <span>{t('LIVE_DEMO')}</span>
                   <Icon icon="ant-design:export-outlined" className="w-3.5 h-3.5" />
                 </a>
               )}
@@ -216,7 +216,7 @@ export default function AdminProjectDetailModal({
               onClick={onClose}
               className="px-5 py-2 rounded-full bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-all"
             >
-              {pick(lang, 'Đóng', 'Close')}
+              {t('CLOSE')}
             </button>
           </div>
         </motion.div>

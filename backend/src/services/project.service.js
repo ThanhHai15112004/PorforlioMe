@@ -3,14 +3,24 @@ import * as projectModel from '#models/project.model.js';
 import { deleteImage } from '#services/upload.service.js';
 import { prisma } from '#config/prisma.js';
 
-// Dịch vụ xử lý nghiệp vụ lấy danh sách dự án (Phân trang + Lọc + i18n)
+// Dịch vụ xử lý nghiệp vụ lấy danh sách dự án công khai (Phân trang + Lọc + i18n)
 export const getProjectsList = async (queryParams) => {
   return await projectModel.findProjects(queryParams);
+};
+
+// Dịch vụ xử lý nghiệp vụ lấy danh sách dự án cho Admin CMS
+export const getAdminProjectsList = async (queryParams) => {
+  return await projectModel.findAdminProjects(queryParams);
 };
 
 // Dịch vụ xử lý nghiệp vụ lấy thông tin chi tiết dự án theo slug
 export const getProjectDetailBySlug = async (slug, lang) => {
   return await projectModel.findProjectBySlug(slug, lang);
+};
+
+// Dịch vụ xử lý nghiệp vụ lấy thông tin chi tiết thô dự án theo ID cho Admin Editor
+export const getAdminProjectById = async (id) => {
+  return await projectModel.findProjectByIdForAdmin(id);
 };
 
 // Dịch vụ xử lý nghiệp vụ tạo mới dự án
@@ -23,8 +33,23 @@ export const createNewProject = async (data) => {
     slug = slugify(firstTitle, { lower: true, strict: true });
   }
 
+  if (!slug) {
+    slug = `project-${Date.now()}`;
+  } else {
+    slug = slugify(slug, { lower: true, strict: true });
+  }
+
+  // Kiểm tra tính duy nhất của slug
+  const existingSlug = await prisma.project.findUnique({
+    where: { slug },
+  });
+
+  if (existingSlug) {
+    slug = `${slug}-${Math.floor(Math.random() * 1000)}`;
+  }
+
   return await projectModel.createProject({
-    slug: slug || `project-${Date.now()}`,
+    slug,
     translations,
     ...coreData,
   });
@@ -32,7 +57,16 @@ export const createNewProject = async (data) => {
 
 // Dịch vụ xử lý nghiệp vụ cập nhật thông tin dự án
 export const updateProject = async (id, data) => {
-  return await projectModel.updateProject(id, data);
+  let { slug, ...updateData } = data || {};
+
+  if (slug) {
+    slug = slugify(slug, { lower: true, strict: true });
+  }
+
+  return await projectModel.updateProject(id, {
+    ...(slug && { slug }),
+    ...updateData,
+  });
 };
 
 // Dịch vụ xử lý nghiệp vụ xóa dự án (Dọn dẹp ảnh trên Cloudinary trước khi xóa DB)
@@ -60,4 +94,3 @@ export const deleteProject = async (id) => {
   // 2. Xóa bản ghi dự án khỏi cơ sở dữ liệu
   return await projectModel.deleteProject(numId);
 };
-

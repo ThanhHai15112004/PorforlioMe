@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { translations, getMessage, type Lang } from '../lang';
 
-export type Lang = 'vi' | 'en';
+export type { Lang };
 
 interface LangContextValue {
   lang: Lang;
   setLang: (l: Lang) => void;
   toggleLang: () => void;
+  t: (key: string) => string;
 }
 
 const LangContext = createContext<LangContextValue | null>(null);
@@ -26,8 +28,13 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   const toggleLang = () => setLang((l) => (l === 'vi' ? 'en' : 'vi'));
 
+  // Hàm dịch i18n lấy duy nhất 1 key string thông qua module lang/index.ts
+  const t = (key: string): string => {
+    return getMessage(key, lang);
+  };
+
   return (
-    <LangContext.Provider value={{ lang, setLang, toggleLang }}>
+    <LangContext.Provider value={{ lang, setLang, toggleLang, t }}>
       {children}
     </LangContext.Provider>
   );
@@ -40,8 +47,10 @@ export function useLang(): LangContextValue {
   return ctx;
 }
 
-/** Chọn giá trị theo ngôn ngữ hiện tại — tiện dùng inline: pick(lang, 'vi text', 'en text'). */
-// eslint-disable-next-line react-refresh/only-export-components -- helper thuần, không phải component
-export function pick<T>(lang: Lang, vi: T, en: T): T {
-  return lang === 'vi' ? vi : en;
+/** Chọn giá trị theo ngôn ngữ hiện tại — dùng cho dữ liệu động */
+// eslint-disable-next-line react-refresh/only-export-components -- helper thuần
+export function pick<T>(lang: Lang, viVal: T, enVal: T): T {
+  return lang === 'vi' ? viVal : enVal;
 }
+
+export { translations, getMessage };
